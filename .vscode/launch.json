@@ -1,0 +1,22 @@
+{
+  // F5 in VS Code: run SlideCatch from the source (uses the .venv interpreter)
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "SlideCatch",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/main.py",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "SlideCatch self-test",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/main.py",
+      "args": ["--self-test", "${workspaceFolder}/selftest.json"],
+      "console": "integratedTerminal"
+    }
+  ]
+}

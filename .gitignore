@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Tools
+.pytest_cache/
+.ruff_cache/
+
+# Build output (made by scripts\build_windows.bat or the build server)
+build/
+dist/
+selftest.json
+
+# Logs and local data
+*.log
+SlideCatch.portable

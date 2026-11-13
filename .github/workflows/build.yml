@@ -1,0 +1,120 @@
+# Build server (GitHub Actions). At every push:
+#   1. checks and tests on Linux (quick, no screen needed);
+#   2. on Windows: tests with real windows and captures, builds the portable
+#      folder, runs the built program's self-test, reports the size, and keeps
+#      the zip as a download ("artifact") of the run.
+# Pushing a tag such as v0.1.0 also publishes the zip as a GitHub release.
+
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write          # needed only to publish a release from a tag
+
+env:
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  linux-tests:
+    name: Checks and tests (Linux)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - name: Libraries Qt needs on Linux
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libegl1 libgl1 libxkbcommon0 libfontconfig1 libdbus-1-3
+      - run: pip install -r requirements-dev.txt
+      - run: ruff check .
+      - run: python -m pytest
+        env:
+          QT_QPA_PLATFORM: offscreen
+
+  windows:
+    name: Tests, build and self-test (Windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install -r requirements-dev.txt
+
+      - name: Tests (real windows and captures)
+        run: python -m pytest -rs
+
+      - name: Build the portable folder
+        run: python -m PyInstaller SlideCatch.spec --noconfirm --clean --log-level WARN
+
+      - name: Self-test of the built program
+        shell: pwsh
+        run: |
+          $report = Join-Path $PWD "selftest.json"
+          $p = Start-Process -FilePath "dist\SlideCatch\SlideCatch.exe" -ArgumentList "--self-test", "`"$report`"" -Wait -PassThru
+          Get-Content $report
+          if ($p.ExitCode -ne 0) { throw "Self-test failed (exit code $($p.ExitCode))" }
+
+      - name: Zip and size report
+        id: package
+        shell: pwsh
+        run: |
+          $version = python -c "import slidecatch; print(slidecatch.APP_VERSION)"
+          $zip = "SlideCatch-$version-portable.zip"
+          Compress-Archive -Path dist\SlideCatch -DestinationPath $zip -Force
+          $files = Get-ChildItem dist\SlideCatch -Recurse -File
+          $total = ($files | Measure-Object Length -Sum).Sum
+          $zipSize = (Get-Item $zip).Length
+          $lines = @("## SlideCatch $version - size",
+                     "",
+                     "| | MB |", "|---|---:|",
+                     ("| Folder (unpacked) | {0:N1} |" -f ($total / 1MB)),
+                     ("| Zip (download) | {0:N1} |" -f ($zipSize / 1MB)),
+                     "", "Biggest files:", "",
+                     "| File | MB |", "|---|---:|")
+          $files | Sort-Object Length -Descending | Select-Object -First 12 | ForEach-Object {
+            $lines += ("| {0} | {1:N2} |" -f $_.FullName.Substring((Resolve-Path dist\SlideCatch).Path.Length + 1), ($_.Length / 1MB))
+          }
+          $lines | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+          $lines | Write-Output
+          "zip=$zip" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Screenshots of every screen
+        if: always()
+        run: |
+          python scripts/screenshots.py shots en light
+          python scripts/screenshots.py shots ar light
+          python scripts/screenshots.py shots fr dark
+        env:
+          QT_QPA_PLATFORM: offscreen
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SlideCatch-portable
+          path: ${{ steps.package.outputs.zip }}
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reports
+          path: |
+            selftest.json
+            shots/
+          if-no-files-found: ignore
+
+      - name: Publish the release (tags only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" "${{ steps.package.outputs.zip }}" --title "SlideCatch ${{ github.ref_name }}" --notes-file CHANGELOG.md

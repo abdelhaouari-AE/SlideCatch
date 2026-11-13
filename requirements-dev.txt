@@ -1,0 +1,7 @@
+# Extra tools for development, tests and building SlideCatch.exe.
+# They are never shipped with the program.
+-r requirements.txt
+pytest>=8
+python-pptx>=1.0       # tests only: reopens the PowerPoint files SlideCatch writes
+pyinstaller>=6.6       # builds the portable folder (see SlideCatch.spec)
+ruff>=0.5              # style and error checks

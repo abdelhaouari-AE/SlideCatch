@@ -1,0 +1,4 @@
+# What SlideCatch needs to run (Windows 10/11, Python 3.10 or newer).
+# "Essentials" is the smaller half of PySide6: Qt Core, Gui, Widgets, Svg...
+# without WebEngine, 3D, Multimedia and the other big modules.
+PySide6-Essentials>=6.6,<7

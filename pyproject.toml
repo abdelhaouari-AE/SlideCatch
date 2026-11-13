@@ -1,0 +1,30 @@
+# Project description and tool settings. SlideCatch is not published on PyPI:
+# this file only names the project and configures the checks.
+
+[project]
+name = "slidecatch"
+version = "0.1.0"
+description = "Catch every slide of a presentation shared in Microsoft Teams"
+authors = [{ name = "Abdelhalim EL HAOUARI" }]
+license = { text = "Proprietary - all rights reserved" }
+requires-python = ">=3.10"
+dependencies = ["PySide6-Essentials>=6.6,<7"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 110
+target-version = "py310"
+extend-exclude = ["build", "dist"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "B", "I"]
+ignore = ["E731", "B008", "B023", "B010", "B905"]   # B905: zip(strict=) not needed
+
+[tool.ruff.lint.per-file-ignores]
+"slidecatch/locales/*" = ["E501"]           # translations: one text per line
+"slidecatch/ui/icons.py" = ["E501"]           # SVG drawings
+"slidecatch/ui/theme.py" = ["E501"]           # style sheet
+"SlideCatch.spec" = ["F821"]

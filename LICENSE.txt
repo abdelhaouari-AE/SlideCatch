@@ -1,0 +1,9 @@
+SlideCatch
+Copyright (c) 2026 Abdelhalim EL HAOUARI. All rights reserved.
+
+This software and its source code are the property of Abdelhalim EL HAOUARI.
+No part of it may be copied, modified, distributed or sold without the
+author's written permission. Use of the program is subject to the terms of use
+shown when it starts for the first time.
+
+Third-party components keep their own licences; see THIRD_PARTY_NOTICES.md.
