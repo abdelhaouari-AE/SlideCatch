@@ -66,12 +66,13 @@ def cover(qapp, window):
     return over
 
 
-def test_our_window_is_listed(target):
+def test_window_list_leaves_out_slidecatch_itself(target):
+    """SlideCatch's own windows are never offered as something to capture."""
     from slidecatch.core import win32
     _window, hwnd = target
-    found = [w for w in win32.list_windows() if w.hwnd == hwnd]
-    assert found and found[0].title == "SlideCatch test window"
-    assert found[0].exe.lower().endswith((".exe",))
+    windows = win32.list_windows()
+    assert hwnd not in [w.hwnd for w in windows]
+    assert all(w.title and w.kind for w in windows)
 
 
 def test_printwindow(target):
