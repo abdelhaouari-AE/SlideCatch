@@ -77,7 +77,7 @@ scripts/       build script, screenshot renderer, text list for translators
 SlideCatch.spec  PyInstaller recipe (trimmed Qt: small download)
 ```
 
-Every push runs the tests on Linux and Windows, builds the portable folder, runs the built program's self-test and reports the download size (**Actions** tab). Pushing a tag `v0.1.1` publishes a release with the zip.
+Every push runs the tests on Linux and Windows, builds the portable folder, runs the built program's self-test and reports the download size (**Actions** tab). Raising the version in `slidecatch/__init__.py` publishes a new release with the zip automatically.
 
 ## Licence
 

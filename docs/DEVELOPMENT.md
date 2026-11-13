@@ -198,9 +198,8 @@ If the self-test fails after a change to the `.spec`, the report (`selftest.json
 
 1. Change the version in **`slidecatch/__init__.py`** (`APP_VERSION`) and in `pyproject.toml`.
 2. Add a section at the top of **`CHANGELOG.md`**.
-3. Commit and push; wait for the green tick in **Actions**.
-4. Create the tag and push it: `git tag v0.1.1` then `git push origin v0.1.1` (GitHub Desktop: *History* → right-click the commit → *Create Tag*, then *Push*).
-5. The build server publishes a **Release** with `SlideCatch-0.1.1-portable.zip` attached.
+3. Commit and push to `main`.
+4. The build server tests and builds; when everything is green and no release `v0.1.1` exists yet, it publishes the **Release** `v0.1.1` (tag included) with `SlideCatch-0.1.1-portable.zip` and that version's CHANGELOG section as notes. No manual tagging needed.
 
 Version numbers: `0.1.1` for fixes, `0.2.0` for new functions, `1.0.0` when it is ready for everyone.
 
