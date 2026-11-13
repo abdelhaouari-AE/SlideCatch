@@ -75,6 +75,22 @@ jobs:
           Get-Content $report
           if ($p.ExitCode -ne 0) { throw "Self-test failed (exit code $($p.ExitCode))" }
 
+      - name: Diagnose a failed self-test (console build)
+        if: failure()
+        shell: pwsh
+        env:
+          SLIDECATCH_CONSOLE: "1"
+          QT_DEBUG_PLUGINS: "1"
+          PYTHONFAULTHANDLER: "1"
+        run: |
+          python -m PyInstaller SlideCatch.spec --noconfirm --distpath distc --workpath buildc --log-level WARN
+          $out = Join-Path $PWD "console.txt"
+          $p = Start-Process -FilePath "distc\SlideCatch\SlideCatch.exe" -ArgumentList "--self-test", "selftest-console.json" -RedirectStandardOutput $out -RedirectStandardError "$out.err" -NoNewWindow -PassThru
+          if (-not $p.WaitForExit(120000)) { Stop-Process -Id $p.Id -Force; "TIMEOUT" }
+          Get-Content $out -ErrorAction SilentlyContinue | Select-Object -Last 60
+          Get-Content "$out.err" -ErrorAction SilentlyContinue | Select-Object -Last 80
+          Get-Content selftest-console.json -ErrorAction SilentlyContinue
+
       - name: Zip and size report
         id: package
         shell: pwsh

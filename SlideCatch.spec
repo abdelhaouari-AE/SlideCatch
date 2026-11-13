@@ -126,7 +126,9 @@ exe = EXE(
     name="SlideCatch",
     icon=os.path.join(ROOT, "assets", "icon.ico"),
     version=version_file,
-    console=False,           # a window program: no black console behind it
+    # a window program: no black console behind it (SLIDECATCH_CONSOLE=1 builds a
+    # console version that prints errors - used by the build server to diagnose)
+    console=os.environ.get("SLIDECATCH_CONSOLE") == "1",
     debug=False,
     strip=False,
     upx=False,               # compressed DLLs start slower and alarm some antivirus tools
