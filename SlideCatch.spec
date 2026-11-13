@@ -36,7 +36,7 @@ EXCLUDED_MODULES = [
     "ssl", "_ssl", "hashlib", "_hashlib",           # no network, no checksums
     "bz2", "_bz2", "lzma", "_lzma",                 # zip files use plain "deflate"
     "decimal", "_decimal", "fractions", "statistics",
-    "xml", "xmlrpc", "pyexpat", "html", "http", "urllib", "email", "mailbox", "ftplib",
+    "xml", "xmlrpc", "pyexpat", "html", "http", "urllib.request", "email", "mailbox", "ftplib",
     "smtplib", "imaplib", "poplib", "nntplib", "telnetlib",
     "asyncio", "concurrent", "multiprocessing",
     "unicodedata",                                  # 1 MB; see i18n._direction
