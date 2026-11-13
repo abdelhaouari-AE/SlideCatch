@@ -59,7 +59,19 @@ jobs:
         shell: pwsh
         run: |
           $report = Join-Path $PWD "selftest.json"
-          $p = Start-Process -FilePath "dist\SlideCatch\SlideCatch.exe" -ArgumentList "--self-test", "`"$report`"" -Wait -PassThru
+          Get-ChildItem dist\SlideCatch\_internal\PySide6 -Recurse -File | ForEach-Object { $_.FullName.Substring($PWD.Path.Length + 1) }
+          $p = Start-Process -FilePath "dist\SlideCatch\SlideCatch.exe" -ArgumentList "--self-test", "`"$report`"" -PassThru
+          if (-not $p.WaitForExit(240000)) {
+            # Still running after 4 minutes: photograph the screen (a message box?) and stop it
+            Add-Type -AssemblyName System.Windows.Forms, System.Drawing
+            $b = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+            $bmp = New-Object System.Drawing.Bitmap $b.Width, $b.Height
+            [System.Drawing.Graphics]::FromImage($bmp).CopyFromScreen($b.Location, [System.Drawing.Point]::Empty, $b.Size)
+            $bmp.Save((Join-Path $PWD "selftest-hang.png"))
+            Stop-Process -Id $p.Id -Force
+            Get-Content $report -ErrorAction SilentlyContinue
+            throw "The self-test did not finish within 4 minutes (see selftest-hang.png)"
+          }
           Get-Content $report
           if ($p.ExitCode -ne 0) { throw "Self-test failed (exit code $($p.ExitCode))" }
 
@@ -89,6 +101,7 @@ jobs:
 
       - name: Screenshots of every screen
         if: always()
+        continue-on-error: true
         run: |
           python scripts/screenshots.py shots en light
           python scripts/screenshots.py shots ar light
@@ -108,6 +121,7 @@ jobs:
           name: reports
           path: |
             selftest.json
+            selftest-hang.png
             shots/
           if-no-files-found: ignore
 

@@ -49,7 +49,15 @@ def run(report_path: str) -> int:
                "frozen": bool(getattr(sys, "frozen", False)), "checks": {}}
     checks = results["checks"]
 
+    def save():
+        with open(report_path, "w", encoding="utf-8") as fh:
+            json.dump(results, fh, indent=2, default=str)
+
     def check(name, fn, critical=True):
+        # The report is written before and after each check: if a check ever
+        # hangs, the report still says which one it was.
+        results["running"] = name
+        save()
         started = time.monotonic()
         try:
             value = fn()
@@ -57,6 +65,8 @@ def run(report_path: str) -> int:
         except Exception as exc:
             checks[name] = {"ok": False, "critical": critical, "error": repr(exc),
                             "trace": traceback.format_exc(limit=4)}
+        results.pop("running", None)
+        save()
 
     from PySide6 import __version__ as pyside_version
     from PySide6.QtWidgets import QApplication
@@ -171,8 +181,7 @@ def run(report_path: str) -> int:
 
     critical_failures = [n for n, c in checks.items() if not c["ok"] and c.get("critical", True)]
     results["ok"] = not critical_failures
-    with open(report_path, "w", encoding="utf-8") as fh:
-        json.dump(results, fh, indent=2, default=str)
+    save()
     return 0 if results["ok"] else 1
 
 
