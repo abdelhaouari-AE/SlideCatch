@@ -212,12 +212,12 @@ start "" "%APP%\%EXE%"
 rd /s /q "%APP%\_internal.old" 2>nul
 del /q "%APP%\%EXE%.old" 2>nul
 rd /s /q "%NEW%" 2>nul
-goto end
+exit /b 0
 
 :timeout
 echo SlideCatch did not close in time>"%RESULT%"
 start "" "%APP%\%EXE%"
-goto end
+exit /b 1
 
 :locked
 echo some files are in use (antivirus or file explorer?)>"%RESULT%"
@@ -237,9 +237,7 @@ if exist "%APP%\%EXE%.old" (
   ren "%APP%\%EXE%.old" "%EXE%"
 )
 start "" "%APP%\%EXE%"
-
-:end
-endlocal
+exit /b 1
 """
 
 
@@ -257,6 +255,7 @@ def start_script(program_dir: str, new_dir: str, folder: Optional[str] = None) -
     folder = folder or updates_dir()
     script = write_script(folder)
     os.makedirs(folder, exist_ok=True)
+    os.makedirs(os.path.dirname(result_file()), exist_ok=True)     # the script writes its answer there
     flags = 0
     if sys.platform == "win32":
         flags = (subprocess.CREATE_NO_WINDOW | subprocess.DETACHED_PROCESS

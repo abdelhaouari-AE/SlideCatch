@@ -210,13 +210,14 @@ def test_update_script_replaces_the_files_and_keeps_the_rest(tmp_path, name):
     (old / "settings").mkdir()
     (old / "settings" / "keep.json").write_text("mine")
     process = updater.start_script(str(old), str(new), folder=str(tmp_path / "updates"))
-    assert process.wait(timeout=90) == 0
+    code = process.wait(timeout=90)
+    result = updater.read_previous_result()
+    assert (code, result) == (0, "ok"), (code, result, sorted(p.name for p in old.iterdir()))
     assert (old / "_internal" / "new.txt").exists()
     assert not (old / "_internal" / "old.txt").exists()
     assert (old / "settings" / "keep.json").read_text() == "mine"       # never deleted
     assert (old / "SlideCatch.exe").read_bytes().endswith(b"NEW")
     assert not (old / "SlideCatch.exe.old").exists() and not (old / "_internal.old").exists()
-    assert updater.read_previous_result() == "ok"
 
 
 def test_update_script_puts_the_old_version_back_when_a_file_is_in_use(tmp_path):
@@ -228,7 +229,8 @@ def test_update_script_puts_the_old_version_back_when_a_file_is_in_use(tmp_path)
     with open(old / "_internal" / "old.txt", "r") as held:          # keeps the folder from being renamed
         held.read()
         process = updater.start_script(str(old), str(new), folder=str(tmp_path / "updates"))
-        assert process.wait(timeout=90) == 0
+        code = process.wait(timeout=90)
+    result = updater.read_previous_result()
+    assert code == 1 and "in use" in result, (code, result)
     assert (old / "SlideCatch.exe").read_bytes() == original
     assert (old / "_internal" / "old.txt").exists() and not (old / "_internal" / "new.txt").exists()
-    assert "in use" in updater.read_previous_result()
