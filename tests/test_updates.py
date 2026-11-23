@@ -198,7 +198,6 @@ def test_manager_shows_the_dialog_for_a_newer_version(qapp, start_app, monkeypat
     controller.updates.check(silent=False)
     assert wait_until(qapp, lambda: shown)
     assert shown == ["9.9.9"]
-    assert controller.settings.last_update_check > 0
 
 
 def test_manager_is_quiet_when_current_or_unreachable(qapp, start_app, monkeypatch, dialogs):
@@ -211,20 +210,27 @@ def test_manager_is_quiet_when_current_or_unreachable(qapp, start_app, monkeypat
     assert wait_until(qapp, lambda: dialogs)                  # manual: the reason is shown
 
 
-def test_automatic_check_respects_the_setting_and_the_delay(qapp, start_app, monkeypatch):
+def test_automatic_check_runs_at_every_start_but_never_while_capturing(qapp, start_app, monkeypatch):
     controller = start_app()
     calls = []
     monkeypatch.setattr(controller.updates, "check", lambda silent=False: calls.append(silent))
-    controller.settings.check_updates = False
     controller.updates.auto_check()
-    controller.settings.check_updates = True
-    import time
-    controller.settings.last_update_check = time.time()       # checked a moment ago
     controller.updates.auto_check()
-    assert calls == []
-    controller.settings.last_update_check = 0
+    assert calls == [True, True]                              # no delay, no setting to switch it off
+    controller.capture_worker = object()
     controller.updates.auto_check()
-    assert calls == [True]
+    assert calls == [True, True]
+    controller.capture_worker = None
+
+
+def test_update_dialog_offers_only_update_now_and_later(qapp, start_app):
+    from slidecatch.ui.updates import UpdateDialog
+    controller = start_app()
+    dialog = UpdateDialog(updater.parse_release(release_json()), controller)
+    texts = {b.text() for b in dialog.findChildren(type(dialog.go_button))}
+    assert not any("kip" in t for t in texts)
+    assert dialog.later_button.isEnabled() and dialog.go_button.isEnabled()
+    dialog.close()
 
 
 # ---------------------------------------------------------------- terms

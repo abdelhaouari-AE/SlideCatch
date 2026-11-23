@@ -144,7 +144,7 @@ Every export goes to `name.part` first and is renamed when complete; *Cancel* re
 1. In the code, write the English text inside `tr("...")`. Values go in placeholders: `tr("Slide {n} saved", n=count)`.
 2. Texts with a number of things use singular + plural: `trn("{n} slide", "{n} slides", count)`.
 3. List what needs translating: `python scripts/list_texts.py fr` and `... ar`.
-4. Add the translations at the end of `slidecatch/locales/fr.py` and `ar.py` (`'English': 'translation',`). In Arabic, write the plural form with "شريحة"/"صورة" after `{n}`: the code switches to "شرائح"/"صور" for 3 to 10 by itself.
+4. Add the translations at the end of `slidecatch/locales/fr.py`, `es.py`, `de.py` and `ar.py` (`'English': 'translation',`). In Arabic, write the plural form with "شريحة"/"صورة" after `{n}`: the code switches to "شرائح"/"صور" for 3 to 10 by itself.
 5. `pytest tests/test_i18n.py` — it fails if a text is missing, if a placeholder is wrong, or if a translation is no longer used.
 
 The user guide and the terms are Markdown files in `slidecatch/resources/` (one per language). If the **terms** change in substance, raise `TERMS_VERSION` in `app.py`: everyone will be asked to accept them again.
@@ -189,7 +189,7 @@ No picture files are stored: `tests/fakes.py` draws slides and Teams-like window
 Choices that keep the download small and the start fast:
 
 - **Folder build, not a single .exe**: a single .exe unpacks itself at every start (slow, and scanned again by antivirus software).
-- **PySide6-Essentials** instead of full PySide6, and the `.spec` keeps only Qt Core, Gui, Widgets, Svg, Network (update check, with the Windows TLS plug-in; OpenSSL is left out, 6.6 MB) and the Windows platform plugin; software OpenGL (20 MB), the Direct3D compiler, image-format plugins and Qt translations other than French and Arabic are left out.
+- **PySide6-Essentials** instead of full PySide6, and the `.spec` keeps only Qt Core, Gui, Widgets, Svg, Network (update check, with the Windows TLS plug-in; OpenSSL is left out, 6.6 MB) and the Windows platform plugin; software OpenGL (20 MB), the Direct3D compiler, image-format plugins and Qt translations other than French, Spanish, German and Arabic are left out.
 - No NumPy, Pillow, python-pptx or pywin32 at run time; unused Python modules (`ssl`, `hashlib` — Qt does https and checksums —, `xml`, `email`, `decimal`, `unicodedata`…) are excluded.
 - **No UPX** compression: compressed DLLs start slower and alarm some antivirus tools.
 
@@ -223,8 +223,8 @@ Version numbers: `0.2.1` for fixes, `0.3.0` for new functions, `1.0.0` when it i
 
 `slidecatch/updater.py` (no Qt, tested on its own) and `slidecatch/ui/updates.py` (network and windows).
 
-1. At start-up, at most every 20 hours (setting "Check for updates when SlideCatch starts"), `UpdateManager` asks `https://api.github.com/repos/<RELEASES_REPO>/releases/latest`. The repository name is the constant `RELEASES_REPO` in `updater.py`.
-2. If the release is newer than `APP_VERSION`, `UpdateDialog` shows the release notes: **Update now**, **Later**, **Skip this version**.
+1. At every start-up (never while a capture runs; there is no setting to turn it off), `UpdateManager` asks `https://api.github.com/repos/<RELEASES_REPO>/releases/latest`. The repository name is the constant `RELEASES_REPO` in `updater.py`.
+2. If the release is newer than `APP_VERSION`, `UpdateDialog` shows the release notes: **Update now** and **Later** only (the update is meant to be taken).
 3. "Update now" downloads `SlideCatch-<v>-portable.zip.sha256` and the zip (only from `github.com/<repo>/releases/download/`), compares the SHA-256, unzips to `%APPDATA%\SlideCatch\updates\new`.
 4. `updater.start_script()` writes and starts `apply-update.bat`; SlideCatch quits. The script waits until `SlideCatch.exe` can be renamed (= the program has closed), moves `SlideCatch.exe` and `_internal` aside as `.old`, copies the new files with `robocopy` (never deletes other folders: portable `settings`, `sessions`...), starts the new program and deletes the `.old` files. If a step fails it puts the `.old` files back, restarts the old version and writes the reason to `updates\result.txt`, which the next start shows.
 5. Works only for the built Windows program in a writable folder; from source or in a read-only folder the dialog offers "Open the download page".

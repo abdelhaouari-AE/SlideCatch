@@ -57,7 +57,7 @@ QT_LIBRARIES = ("qt6core", "qt6gui", "qt6widgets", "qt6svg.",          # not Qt6
 QT_PLUGINS = ("platforms/qwindows.",
               "tls/qschannelbackend.",                                  # https with the Windows certificates
               "platforms/libqxcb.", "platforms/libqoffscreen.")         # Linux test builds only
-QT_TRANSLATIONS = ("qtbase_fr.", "qtbase_ar.")                         # Copy, Paste... in fr/ar
+QT_TRANSLATIONS = ("qtbase_fr.", "qtbase_es.", "qtbase_de.", "qtbase_ar.")  # Copy, Paste... in the other languages
 QT_PYTHON_MODULES = ("qtcore.", "qtgui.", "qtwidgets.", "qtsvg.", "qtnetwork.")
 NEVER = ("opengl32sw", "d3dcompiler",                                   # 20 MB + 4 MB, unused
          "libcrypto", "libssl")                                         # OpenSSL (6.6 MB): Qt uses Windows Schannel
@@ -86,7 +86,7 @@ a = Analysis(
     datas=[(os.path.join(ROOT, "slidecatch", "resources"), os.path.join("slidecatch", "resources"))],
     hiddenimports=["slidecatch.locales.fr", "slidecatch.locales.ar"],
     hookspath=[],
-    hooksconfig={"pyside6": {"translations": ["qtbase_fr", "qtbase_ar"]}},
+    hooksconfig={"pyside6": {"translations": ["qtbase_fr", "qtbase_es", "qtbase_de", "qtbase_ar"]}},
     runtime_hooks=[],
     excludes=EXCLUDED_MODULES,
     noarchive=False,

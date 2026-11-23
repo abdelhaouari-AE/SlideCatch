@@ -9,7 +9,6 @@ they use the Windows certificate store and add much less to the program size.
 import logging
 import os
 import sys
-import time
 
 from PySide6.QtCore import QCryptographicHash, QFile, QObject, QThread, QTimer, QUrl, Signal
 from PySide6.QtGui import QDesktopServices
@@ -134,7 +133,6 @@ class UpdateDialog(QDialog):
         self.fetcher = Fetcher(self)
         self.stager = None
         self.can_install = release.can_download and updater.can_self_update()
-        self.skipped = False
         self._working = False
         self.setWindowTitle(tr("Update") + " - " + APP_NAME)
         self.resize(520, 460)
@@ -160,16 +158,13 @@ class UpdateDialog(QDialog):
         if not self.can_install:
             col.addWidget(w.label(self._why_manual(), "small", wrap=True))
         row = w.hbox(spacing=8)
-        self.skip_button = w.button(tr("Skip this version"), "ghost")
         self.later_button = w.button(tr("Later"))
         self.go_button = w.button(tr("Update now") if self.can_install else tr("Open the download page"),
                                   "primary")
-        row.addWidget(self.skip_button)
         row.addStretch(1)
         row.addWidget(self.later_button)
         row.addWidget(self.go_button)
         col.addLayout(row)
-        self.skip_button.clicked.connect(self._skip)
         self.later_button.clicked.connect(self.reject)
         self.go_button.clicked.connect(self._go)
 
@@ -179,10 +174,6 @@ class UpdateDialog(QDialog):
             return tr("This copy of SlideCatch runs from source: download the new version by hand.")
         return tr("SlideCatch cannot replace its own files in this folder. Download the new "
                   "version and unzip it over the old one.")
-
-    def _skip(self):
-        self.skipped = True
-        self.reject()
 
     def reject(self):
         if self._working:
@@ -205,7 +196,7 @@ class UpdateDialog(QDialog):
 
     def _busy(self, busy: bool):
         self._working = busy
-        for button in (self.skip_button, self.later_button, self.go_button):
+        for button in (self.later_button, self.go_button):
             button.setEnabled(not busy)
 
     def _show(self, text, done, total):
@@ -290,10 +281,6 @@ class UpdateManager(QObject):
         self._silent = True
         self._busy = False
 
-    @property
-    def settings(self):
-        return self.controller.settings
-
     def report_previous_update(self):
         """After a restart by the helper script: tell the person if it failed."""
         result = updater.read_previous_result()
@@ -303,13 +290,9 @@ class UpdateManager(QObject):
                         "was restored.", reason=result), True)
 
     def auto_check(self):
-        """At start-up: at most once every few hours, and never with a capture running."""
-        s = self.settings
-        if not s.check_updates or self.controller.capture_worker is not None:
-            return
-        if time.time() - s.last_update_check < updater.CHECK_EVERY_HOURS * 3600:
-            return
-        self.check(silent=True)
+        """At every start-up (the only time SlideCatch goes online), never with a capture running."""
+        if self.controller.capture_worker is None:
+            self.check(silent=True)
 
     def check(self, silent: bool = False):
         if self._busy:
@@ -332,17 +315,9 @@ class UpdateManager(QObject):
                 w.inform(parent, APP_NAME, str(exc) if not ok
                          else tr("The update information was not understood."), True)
             return
-        self.settings.last_update_check = time.time()
-        self.controller.save_settings()
         if not updater.is_newer(release.version):
             if not self._silent:
                 w.inform(parent, APP_NAME, tr("SlideCatch is up to date (version {v}).",
                                               v=APP_VERSION))
             return
-        if self._silent and self.settings.skipped_version == release.version:
-            return
-        dialog = UpdateDialog(release, self.controller, parent)
-        dialog.exec()
-        if dialog.skipped:
-            self.settings.skipped_version = release.version
-            self.controller.save_settings()
+        UpdateDialog(release, self.controller, parent).exec()

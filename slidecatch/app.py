@@ -13,7 +13,7 @@ import traceback
 
 from . import APP_NAME, APP_VERSION, config
 
-TERMS_VERSION = "2"
+TERMS_VERSION = "3"
 log = logging.getLogger("slidecatch")
 
 

@@ -11,7 +11,7 @@ Placeholders such as ``{n}`` are filled after translation:
 a plural form: ``trn("{n} slide", "{n} slides", n)``.
 """
 
-LANGUAGES = {"en": "English", "fr": "Français", "ar": "العربية"}
+LANGUAGES = {"en": "English", "fr": "Français", "es": "Español", "de": "Deutsch", "ar": "العربية"}
 RTL_LANGUAGES = {"ar"}
 
 _state = {"lang": "en", "table": {}}
@@ -20,11 +20,15 @@ _state = {"lang": "en", "table": {}}
 def table(lang: str) -> dict:
     if lang == "fr":
         from .locales.fr import STRINGS
-        return STRINGS
-    if lang == "ar":
+    elif lang == "es":
+        from .locales.es import STRINGS
+    elif lang == "de":
+        from .locales.de import STRINGS
+    elif lang == "ar":
         from .locales.ar import STRINGS
-        return STRINGS
-    return {}
+    else:
+        return {}
+    return STRINGS
 
 
 def set_language(lang: str):
@@ -64,7 +68,7 @@ _ARABIC_COUNTED = (("شريحة", "شرائح"), ("صورة", "صور"))
 def trn(singular: str, plural: str, n: int, **values) -> str:
     """A text with a number of things: ``trn("{n} slide", "{n} slides", n)``.
 
-    English uses the singular for 1 only, French for 0 and 1. For Arabic, the
+    English, Spanish and German use the singular for 1 only, French for 0 and 1. For Arabic, the
     noun that follows the number is adjusted as explained above.
     """
     lang = _state["lang"]

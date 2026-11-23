@@ -84,20 +84,12 @@ class SettingsDialog(QDialog):
                                   ("system", tr("System"))], settings.theme)
         rows.addWidget(self._row(tr("Theme"), "", self.theme))
         rows.addWidget(w.hline())
-        # Three choices: a segmented control shows them all at once and only
-        # one can be active (no drop-down list to draw).
-        self.language = w.Segmented([(code, name) for code, name in LANGUAGES.items()],
-                                    settings.language)
+        # A list of languages: one is ticked at a time.
+        self.language = w.ChoiceList(list(LANGUAGES.items()), settings.language)
         self.language.setAccessibleName(tr("Language"))
         rows.addWidget(self._row(tr("Language"), tr("Applied after SlideCatch restarts."),
                                  self.language))
         rows.addWidget(w.hline())
-        self.check_updates = w.Toggle(settings.check_updates)
-        self.check_updates.setAccessibleName(tr("Check for updates when SlideCatch starts"))
-        rows.addWidget(self._row(tr("Check for updates when SlideCatch starts"),
-                                 tr("Asks GitHub whether a newer version exists. Nothing else is "
-                                    "sent, and nothing is installed without your agreement."),
-                                 self.check_updates))
         rows.addWidget(w.hline())
         self.folder = settings.sessions_root()
         self.folder_label = w.label(self.folder, "small", wrap=True)
@@ -156,6 +148,5 @@ class SettingsDialog(QDialog):
             "hotkeys": self.hotkeys.isChecked(),
             "theme": self.theme.current(),
             "language": self.language.current(),
-            "check_updates": self.check_updates.isChecked(),
             "sessions_dir": self.folder,
         }

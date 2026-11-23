@@ -5,7 +5,7 @@ that talks to the internet and shows the dialogs is slidecatch/ui/updates.py.
 
 How an update works (portable program, no installer, no administrator):
 
-1. The release list of the project on GitHub is asked for its latest release
+1. At every start, the project's GitHub page is asked for its latest release
    (one small request; GitHub gets the program name and version, nothing else).
 2. The zip of the release and its checksum file are downloaded to a folder in
    %APPDATA%\\SlideCatch\\updates, and the checksum (SHA-256) is verified.
@@ -39,7 +39,6 @@ PAGE_URL = "https://github.com/%s/releases/latest" % RELEASES_REPO
 
 EXE_NAME = "SlideCatch.exe"
 ASSET_PATTERN = re.compile(r"^SlideCatch-[\w.\-]+-portable\.zip$")
-CHECK_EVERY_HOURS = 20          # the automatic check at start-up runs at most this often
 
 
 class UpdateError(Exception):

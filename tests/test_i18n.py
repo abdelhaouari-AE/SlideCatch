@@ -13,14 +13,14 @@ PLACEHOLDER = re.compile(r"\{(\w+)\}")
 CODE_TEXTS = texts()
 
 
-@pytest.mark.parametrize("lang", ["fr", "ar"])
+@pytest.mark.parametrize("lang", ["fr", "es", "de", "ar"])
 def test_every_text_is_translated(lang):
     table = i18n.table(lang)
     missing = [t for t in CODE_TEXTS if t not in table]
     assert not missing, "%d texts without %s translation: %s" % (len(missing), lang, missing[:5])
 
 
-@pytest.mark.parametrize("lang", ["fr", "ar"])
+@pytest.mark.parametrize("lang", ["fr", "es", "de", "ar"])
 def test_translations_keep_valid_placeholders(lang):
     """A translation may leave a value out ("شريحة واحدة") but never invent one."""
     for english, translated in i18n.table(lang).items():
@@ -28,7 +28,7 @@ def test_translations_keep_valid_placeholders(lang):
         assert set(PLACEHOLDER.findall(translated)) <= set(PLACEHOLDER.findall(english)), english
 
 
-@pytest.mark.parametrize("lang", ["fr", "ar"])
+@pytest.mark.parametrize("lang", ["fr", "es", "de", "ar"])
 def test_no_unused_translations(lang):
     unused = [t for t in i18n.table(lang) if t not in CODE_TEXTS]
     assert not unused, unused[:5]
@@ -78,3 +78,13 @@ def test_dialogs_fill_in_the_author(qapp):
     from slidecatch.ui.dialogs import read_text
     assert APP_AUTHOR in read_text("terms")
     assert "{APP_" not in read_text("guide")
+
+
+def test_spanish_and_german_plurals():
+    for lang in ("es", "de"):
+        i18n.set_language(lang)
+        assert "1" in i18n.trn("{n} slide", "{n} slides", 1)
+        many = i18n.trn("{n} slide", "{n} slides", 2)
+        assert i18n.trn("{n} slide", "{n} slides", 0) == many.replace("2", "0")
+        assert i18n.trn("{n} slide", "{n} slides", 1) != many.replace("2", "1")
+    i18n.set_language("en")

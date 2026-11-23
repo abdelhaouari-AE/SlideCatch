@@ -12,7 +12,7 @@ def test_defaults():
 
 
 def test_clamp_repairs_bad_values():
-    s = config.Settings(interval=0, sensitivity="extreme", language="de", theme="pink",
+    s = config.Settings(interval=0, sensitivity="extreme", language="xx", theme="pink",
                         export_format="docx", mode="tab", area_mode="magic").clamp()
     assert (s.interval, s.sensitivity, s.language, s.theme) == (1, "medium", "en", "light")
     assert (s.export_format, s.mode, s.area_mode) == ("pptx", "window", "auto")

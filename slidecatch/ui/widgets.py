@@ -1,7 +1,7 @@
 """Small reusable widgets: switch, segmented control, toast, cards, keycaps."""
 
 from PySide6.QtCore import QEasingCurve, QPropertyAnimation, QRectF, QSize, Qt, QTimer, Signal
-from PySide6.QtGui import QColor, QFont, QFontMetrics, QPainter, QPen
+from PySide6.QtGui import QActionGroup, QColor, QFont, QFontMetrics, QPainter, QPen
 from PySide6.QtWidgets import (
     QAbstractButton,
     QButtonGroup,
@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (
     QGraphicsOpacityEffect,
     QHBoxLayout,
     QLabel,
+    QMenu,
     QMessageBox,
     QPushButton,
     QSizePolicy,
@@ -132,6 +133,48 @@ class Toggle(QAbstractButton):
 
     def hitButton(self, pos):
         return self.rect().contains(pos)
+
+
+class ChoiceList(QToolButton):
+    """One choice out of a list, picked from a menu (one tick, like a radio button)."""
+
+    changed = Signal(str)
+
+    def __init__(self, options, current: str = "", parent=None):
+        """``options``: list of (key, text)."""
+        super().__init__(parent)
+        self.setProperty("kind", "choice")
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+        self.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextOnly)
+        self._texts = dict(options)
+        menu = QMenu(self)
+        self._group = QActionGroup(menu)
+        self._group.setExclusive(True)
+        for key, text in options:
+            action = menu.addAction(text)
+            action.setData(key)
+            action.setCheckable(True)
+            self._group.addAction(action)
+        self._group.triggered.connect(lambda action: self.set_current(action.data(), emit=True))
+        self.setMenu(menu)
+        # Wide enough for the longest text, so the button never changes size.
+        widest = max(QFontMetrics(self.font()).horizontalAdvance(t) for t in self._texts.values())
+        self.setMinimumWidth(widest + 56)
+        self.set_current(current or options[0][0], emit=False)
+
+    def set_current(self, key: str, emit: bool = False):
+        for action in self._group.actions():
+            action.setChecked(action.data() == key)
+        self.setText(self._texts.get(key, ""))
+        if emit:
+            self.changed.emit(key)
+
+    def current(self) -> str:
+        for action in self._group.actions():
+            if action.isChecked():
+                return action.data()
+        return ""
 
 
 class Segmented(QFrame):

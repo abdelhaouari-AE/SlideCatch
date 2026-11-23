@@ -40,8 +40,8 @@ The full guide is inside the app (**?** button), in the three languages.
 - **Nothing is lost.** Every slide is written to disk the moment it is caught. After a crash or a power cut, SlideCatch offers to restore the session.
 - **Review before export.** Delete, reorder (drag and drop), crop, merge animation steps, undo / redo — the captured pictures are never altered.
 - **Exports.** PowerPoint (one picture per slide, optional title slide, capture time in the speaker notes), PDF, or numbered PNG files.
-- **Light and dark themes** in the Microsoft Teams colours; **Arabic** with a fully mirrored interface.
-- **Private by design.** No account, no data collection. The only internet use is the optional check for a new version (GitHub sees your IP address, the program name and version; switch it off in Settings).
+- **Light and dark themes** in the Microsoft Teams colours; **English, French, Spanish, German and Arabic** (Arabic with a fully mirrored interface).
+- **Private by design.** Works offline, no account, nothing from you is uploaded. SlideCatch connects to the internet only to check for and download app updates.
 
 ### Good to know
 
@@ -70,7 +70,7 @@ slidecatch/
   core/        capture (Windows Graphics Capture, PrintWindow, screen), slide detection,
                slide-area finder, crash-safe sessions, PowerPoint writer - no Qt here
   ui/          the PySide6 interface (main window, mini bar, review, settings, dialogs)
-  locales/     French and Arabic texts
+  locales/     interface texts (French, Spanish, German, Arabic)
   resources/   user guide and terms in each language, icon
 tests/         pytest suite (generated pictures; Windows capture tests run on Windows only)
 scripts/       build script, screenshot renderer, text list for translators

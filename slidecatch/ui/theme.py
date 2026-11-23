@@ -290,6 +290,9 @@ QToolButton:pressed {{ background: {t['pressed']}; }}
 QToolButton:disabled {{ color: {t['text3']}; }}
 QToolButton[kind="text"] {{ padding: 5px 9px; font-weight: 600; color: {t['text2']}; }}
 QToolButton[kind="text"]:hover {{ color: {t['text']}; }}
+QToolButton[kind="choice"] {{ background: {t['surface']}; border: 1px solid {t['border_strong']};
+                             border-radius: 6px; padding: 6px 12px; font-weight: 500; color: {t['text']}; }}
+QToolButton[kind="choice"]:hover {{ background: {t['hover']}; }}
 QToolButton::menu-indicator {{ image: none; width: 0; }}
 
 QLineEdit, QSpinBox, QComboBox {{ background: {t['surface']}; border: 1px solid {t['border_strong']};

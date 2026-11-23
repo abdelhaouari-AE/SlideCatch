@@ -69,7 +69,7 @@ def default_export_dir() -> str:
 
 @dataclass
 class Settings:
-    language: str = "en"               # "en", "fr" or "ar"
+    language: str = "en"               # "en", "fr", "es", "de" or "ar"
     theme: str = "light"               # "light", "dark" or "system"
     terms_accepted: str = ""           # version of the terms the person accepted
     interval: int = 1                  # seconds between looks (minimum 1)
@@ -77,9 +77,6 @@ class Settings:
     ignore_live: bool = True           # ignore the mouse pointer and video tiles
     auto_merge: bool = False           # keep only the last step of animations
     hotkeys: bool = True               # system-wide shortcuts
-    check_updates: bool = True         # look for a new version when SlideCatch starts
-    last_update_check: float = 0.0     # time of the last check (seconds since 1970)
-    skipped_version: str = ""          # a version the person chose not to be reminded of
     sessions_dir: str = ""             # "" = default
     export_dir: str = ""               # last folder used for exports
     export_format: str = "pptx"        # "pptx", "pdf" or "png"
@@ -105,7 +102,7 @@ class Settings:
         self.interval = max(1, min(60, int(self.interval or 1)))
         if self.sensitivity not in ("low", "medium", "high"):
             self.sensitivity = "medium"
-        if self.language not in ("en", "fr", "ar"):
+        if self.language not in ("en", "fr", "es", "de", "ar"):
             self.language = "en"
         if self.theme not in ("light", "dark", "system"):
             self.theme = "light"

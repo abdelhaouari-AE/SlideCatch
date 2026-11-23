@@ -13,7 +13,7 @@ from slidecatch import APP_AUTHOR, APP_NAME, APP_VERSION, config, i18n
 from tests.conftest import wait_until
 
 
-@pytest.mark.parametrize("language", ["en", "fr", "ar"])
+@pytest.mark.parametrize("language", ["en", "fr", "es", "de", "ar"])
 def test_main_window_in_every_language(start_app, qapp, language):
     controller = start_app(language)
     main = controller.main
@@ -171,3 +171,13 @@ def test_popups_have_transparent_corners(qapp):
     assert wait_until(qapp, tip_is_up, 3.0)
     assert tips[0].grab().toImage().pixelColor(0, 0).alpha() == 0
     QToolTip.hideText()
+
+
+def test_language_list_ticks_one_language(qapp):
+    from slidecatch.ui import widgets as w
+    choice = w.ChoiceList([("en", "English"), ("es", "Español"), ("de", "Deutsch")], "en")
+    seen = []
+    choice.changed.connect(seen.append)
+    next(a for a in choice.menu().actions() if a.data() == "de").trigger()
+    assert choice.current() == "de" and choice.text() == "Deutsch" and seen == ["de"]
+    assert [a.isChecked() for a in choice.menu().actions()] == [False, False, True]

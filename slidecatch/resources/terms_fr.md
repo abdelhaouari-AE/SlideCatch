@@ -2,7 +2,7 @@
 
 **Vous utilisez SlideCatch à vos propres risques. Vous êtes seul responsable de ce que vous capturez et de l'usage que vous en faites.**
 
-**1. Objet.** SlideCatch prend des images du contenu affiché sur votre écran, par exemple une présentation partagée pendant une réunion en ligne, et les assemble en fichiers. Tout le traitement se fait sur votre ordinateur. SlideCatch n'a pas de compte et ne collecte aucune donnée d'usage. Son seul contact avec Internet est la vérification facultative d'une nouvelle version (voir l'article 11).
+**1. Objet.** SlideCatch prend des images du contenu affiché sur votre écran, par exemple une présentation partagée pendant une réunion en ligne, et les assemble en fichiers. Tout le traitement se fait sur votre ordinateur. SlideCatch fonctionne hors ligne : il n'a pas de compte, ne collecte aucune donnée d'usage et ne transmet rien de ce qui vous appartient. Sa seule connexion à Internet sert à vérifier et à télécharger les mises à jour de l'application (voir l'article 11).
 
 **2. Utilisation à vos risques.** Vous installez et utilisez SlideCatch volontairement et à vos propres risques. Vous êtes seul responsable de la manière dont vous l'utilisez, du contenu que vous capturez, et de tout usage, copie ou partage des fichiers produits.
 
@@ -26,7 +26,7 @@
 
 **10. Modifications.** Ces conditions peuvent changer avec les nouvelles versions de SlideCatch. Lorsqu'elles changent sur le fond, le programme vous demande de les accepter de nouveau.
 
-**11. Mises à jour et Internet.** Sauf si vous le désactivez dans les Paramètres, SlideCatch demande à GitHub, au démarrage, si une version plus récente existe. GitHub voit alors votre adresse IP ainsi que le nom et la version du programme, comme pour n'importe quelle page web. Rien d'autre n'est envoyé. Une nouvelle version n'est installée que si vous choisissez « Mettre à jour maintenant ».
+**11. Mises à jour et Internet.** SlideCatch fonctionne hors ligne. Il se connecte à Internet uniquement pour vérifier, à chaque démarrage, si une version plus récente existe, et pour la télécharger. Rien de ce qui vous appartient (diapositives, fichiers, données d'usage) n'est envoyé. GitHub, qui héberge les mises à jour, voit votre adresse IP ainsi que le nom et la version du programme, comme pour n'importe quelle page web. Garder SlideCatch à jour fait partie de son utilisation : une nouvelle version est installée lorsque vous choisissez « Mettre à jour maintenant ».
 
 **12. Acceptation.** En cliquant sur « J'accepte », ou en utilisant SlideCatch, vous confirmez avoir lu, compris et accepté ces conditions. Si vous n'êtes pas d'accord, cliquez sur « Refuser » et SlideCatch se ferme.
 

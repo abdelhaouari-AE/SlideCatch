@@ -2,6 +2,15 @@
 
 All notable changes to SlideCatch. Versions follow `MAJOR.MINOR.PATCH`.
 
+## 0.3.0 — 2026-11-23
+
+### New
+- **Spanish and German** (interface, user guide, terms of use). The language is chosen from a list, in the header and in Settings.
+
+### Changed
+- **Updates are no longer optional.** SlideCatch checks for a new version at every start; the update window offers only **Update now** and **Later** (no "Skip this version", no setting to turn the check off).
+- Wording everywhere (terms, guide, README): SlideCatch works offline, uploads nothing from the user and goes online only to check for and download app updates. Terms of use are shown again once (version 3).
+
 ## 0.2.1 — 2026-11-23
 
 ### Size

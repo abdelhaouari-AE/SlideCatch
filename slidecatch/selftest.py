@@ -77,7 +77,7 @@ def run(report_path: str) -> int:
         from . import i18n
         from .ui import icons, theme
         theme.apply(app, "light")
-        for lang in ("fr", "ar", "en"):
+        for lang in ("fr", "es", "de", "ar", "en"):
             i18n.set_language(lang)
             assert i18n.tr("Start capture")
         pixmap = icons.pixmap("settings", "#5B5FC7", 18)

@@ -2,7 +2,7 @@
 
 **Use SlideCatch at your own risk. You alone are responsible for what you capture and for what you do with it.**
 
-**1. Purpose.** SlideCatch takes pictures of content shown on your screen, such as a presentation shared in an online meeting, and assembles them into files. All processing happens on your computer. SlideCatch has no account and collects no usage data. Its only contact with the internet is the optional check for a new version (see article 11).
+**1. Purpose.** SlideCatch takes pictures of content shown on your screen, such as a presentation shared in an online meeting, and assembles them into files. All processing happens on your computer. SlideCatch works offline: it has no account, collects no usage data and uploads nothing from you. Its only connection to the internet is to check for and download app updates (see article 11).
 
 **2. Use at your own risk.** You install and use SlideCatch voluntarily and at your own risk. You are solely responsible for the way you use it, for the content you capture, and for every use, copy or sharing of the files it produces.
 
@@ -26,7 +26,7 @@
 
 **10. Changes.** These terms may change with new versions of SlideCatch. When they change in substance, the program asks you to accept them again.
 
-**11. Updates and internet.** Unless you turn it off in Settings, SlideCatch asks GitHub, when it starts, whether a newer version exists. GitHub then sees your IP address and the program name and version, like for any web page. Nothing else is sent. A new version is installed only when you choose "Update now".
+**11. Updates and internet.** SlideCatch works offline. It connects to the internet only to check, each time it starts, whether a newer version exists, and to download it. Nothing from you (slides, files, usage data) is uploaded. GitHub, which hosts the updates, sees your IP address and the program name and version, like for any web page. Keeping SlideCatch up to date is part of using it: a new version is installed when you choose "Update now".
 
 **12. Acceptance.** By clicking "I agree", or by using SlideCatch, you confirm that you have read, understood and accepted these terms. If you do not agree, click "Decline" and SlideCatch closes.
 
