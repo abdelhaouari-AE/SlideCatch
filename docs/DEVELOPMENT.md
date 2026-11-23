@@ -57,7 +57,7 @@ slidecatch/
     preview.py, rect_select.py, region_select.py   drawing widgets
     theme.py, icons.py, widgets.py, imaging.py     colours, icons, small widgets, picture helpers
   locales/fr.py, ar.py      translations {English: translation}
-  resources/                guide_xx.md, terms_xx.md (3 languages), icon.png
+  resources/                guide_xx.md, terms_xx.md (5 languages), icon.png
 tests/                      pytest suite; fakes.py draws slides and meeting windows
 scripts/                    build_windows.bat, screenshots.py, list_texts.py, make_icon.py
 SlideCatch.spec             PyInstaller recipe (what goes into the build, what is left out)
@@ -174,7 +174,7 @@ Change the constants at the top of `core/detect.py`, run `pytest tests/test_dete
 | `test_pptx.py`, `test_export.py` | PowerPoint structure (reopened with python-pptx), PDF, PNG, cancel |
 | `test_i18n.py` | all texts translated, placeholders, plurals, right-to-left helpers |
 | `test_config.py` | settings file, repairs, portable mode |
-| `test_ui.py` | windows in 3 languages; start → 2 slides → stop → review → export, driven like a person |
+| `test_ui.py` | windows in 5 languages; start → 2 slides → stop → review → export, driven like a person |
 | `test_updates.py` | versions, release data, safe unzip, download with a local server, update dialog logic, terms shown at first start |
 | `test_windows.py` | **Windows only**: the update helper script (files replaced, folders kept, rollback),  real captures (WGC, PrintWindow, screen), covered window, minimized/closed window, mini bar invisible in captures, shortcuts |
 

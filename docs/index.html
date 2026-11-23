@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SlideCatch — save every Teams slide</title>
+<meta name="description" content="SlideCatch watches a presentation in Microsoft Teams and keeps every slide. Export to PowerPoint, PDF or pictures.">
+<style>
+:root{
+  --ink:#1d1d2b; --ink2:#55566b; --paper:#f4f4fa; --white:#fff;
+  --brand:#5b5fc7; --brand-deep:#33357a; --brand-soft:#e4e5f7; --line:#dcdcea;
+  --font:"Segoe UI Variable Display","Segoe UI","Helvetica Neue",Arial,system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:var(--font);color:var(--ink);background:var(--paper);line-height:1.55;font-size:17px;-webkit-font-smoothing:antialiased}
+img{max-width:100%;display:block}
+a{color:var(--brand-deep)}
+:focus-visible{outline:3px solid var(--brand);outline-offset:3px;border-radius:6px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+
+/* top bar */
+header.top{display:flex;align-items:center;justify-content:space-between;padding:18px 0}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:19px;letter-spacing:-.01em;color:var(--ink);text-decoration:none}
+.brand img{width:30px;height:30px;border-radius:7px}
+.btn{display:inline-flex;align-items:center;gap:8px;background:var(--brand);color:#fff;text-decoration:none;font-weight:600;padding:13px 22px;border-radius:10px;transition:background .15s,transform .15s}
+.btn:hover{background:var(--brand-deep)}
+.btn:active{transform:translateY(1px)}
+.btn.small{padding:9px 16px;font-size:15px}
+.btn.ghost{background:transparent;color:var(--brand-deep);box-shadow:inset 0 0 0 2px var(--brand-soft)}
+.btn.ghost:hover{background:var(--brand-soft)}
+
+/* hero */
+.hero{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:48px;align-items:center;padding:36px 0 72px}
+h1{font-size:clamp(40px,6vw,68px);line-height:1.02;letter-spacing:-.035em;margin:0 0 18px;font-weight:700}
+.lead{font-size:20px;color:var(--ink2);max-width:30em;margin:0 0 28px}
+.cta{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.meta{margin:14px 0 0;color:var(--ink2);font-size:15px}
+
+/* hero animation */
+.stage{position:relative}
+.win{background:var(--white);border-radius:14px;box-shadow:0 30px 60px -24px rgba(51,53,122,.45),0 0 0 1px var(--line);overflow:hidden;position:relative}
+.win-bar{display:flex;align-items:center;gap:8px;background:#464775;color:#fff;padding:8px 12px;font-size:13px}
+.win-bar i{width:9px;height:9px;border-radius:50%;background:#ffffff55;display:block}
+.win-bar b{margin-left:6px;font-weight:600}
+.win-body{display:grid;grid-template-columns:1fr 74px;gap:8px;padding:8px;background:#2b2b3a}
+.shared{position:relative;aspect-ratio:16/9;background:#fff;border-radius:6px;overflow:hidden}
+.tiles{display:grid;gap:6px;align-content:start}
+.tiles span{aspect-ratio:4/3;border-radius:6px;background:linear-gradient(135deg,#6c6f9c,#454766);position:relative}
+.tiles span::after{content:"";position:absolute;left:50%;top:34%;width:30%;aspect-ratio:1;border-radius:50%;background:#ffffff40;transform:translateX(-50%)}
+.slide{position:absolute;inset:0;padding:6% 7%;display:flex;flex-direction:column;gap:5%;opacity:0;transform:translateX(6%);transition:opacity .45s ease,transform .45s ease;color:#2a2a3c}
+.slide.on{opacity:1;transform:none}
+.slide h4{margin:0;font-size:clamp(13px,2.1vw,22px);letter-spacing:-.02em}
+.slide small{font-size:clamp(8px,1.1vw,12px);color:#7a7b91}
+.s-title{justify-content:center;background:linear-gradient(120deg,#5b5fc7,#33357a);color:#fff}
+.s-title small{color:#d8d9f6}
+.bars{flex:1;display:flex;align-items:flex-end;gap:5%}
+.bars i{flex:1;background:var(--brand);border-radius:3px 3px 0 0}
+.bars i:nth-child(2n){background:#9ea1e6}
+.lines{display:grid;gap:7px}
+.lines i{height:8px;border-radius:4px;background:#d9daf0;display:block}
+.lines i:nth-child(1){width:84%}.lines i:nth-child(2){width:70%}.lines i:nth-child(3){width:78%}.lines i:nth-child(4){width:52%}
+.track{flex:1;position:relative;display:flex;align-items:center}
+.track::before{content:"";position:absolute;left:0;right:0;height:3px;background:#d9daf0}
+.track i{position:relative;flex:1;height:14px;display:flex;justify-content:center}
+.track i::before{content:"";width:14px;height:14px;border-radius:50%;background:var(--brand);box-shadow:0 0 0 4px #fff}
+/* catch frame */
+.frame{position:absolute;inset:0;border:2px dashed var(--brand);border-radius:6px;pointer-events:none;opacity:.85}
+.flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
+.shutter{position:absolute;right:10px;top:10px;background:#fff;color:var(--brand-deep);font-size:12px;font-weight:700;padding:3px 9px;border-radius:99px;opacity:0;transform:scale(.8);transition:all .25s}
+.shutter.on{opacity:1;transform:none}
+/* filmstrip */
+.strip{display:flex;align-items:center;gap:10px;margin-top:14px;background:var(--white);border-radius:12px;padding:10px;box-shadow:0 0 0 1px var(--line)}
+.slots{display:flex;gap:8px;flex:1}
+.slot{flex:1;aspect-ratio:16/9;border-radius:5px;background:var(--brand-soft);overflow:hidden;position:relative}
+
+.count{min-width:86px;text-align:right;font-weight:700;color:var(--brand-deep);font-variant-numeric:tabular-nums;font-size:15px}
+.out{position:absolute;right:-6px;bottom:-22px;display:flex;gap:6px;opacity:0;transform:translateY(8px);transition:all .4s}
+.out.on{opacity:1;transform:none}
+.out span{background:var(--brand-deep);color:#fff;font-weight:600;font-size:13px;padding:5px 11px;border-radius:99px;box-shadow:0 8px 16px -8px rgba(51,53,122,.7)}
+.fly{position:fixed;z-index:50;pointer-events:none;border-radius:6px;overflow:hidden;box-shadow:0 12px 30px rgba(51,53,122,.35);transform-origin:top left}
+.fly .slide{opacity:1;transform:none;transition:none}
+
+/* sections */
+section{padding:72px 0}
+h2{font-size:clamp(30px,4vw,44px);letter-spacing:-.03em;line-height:1.1;margin:0 0 14px}
+.sub{color:var(--ink2);max-width:34em;margin:0 0 40px}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;counter-reset:s;list-style:none;padding:0;margin:0}
+.steps li{counter-increment:s}
+.steps li::before{content:counter(s);display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--brand);color:#fff;font-weight:700;margin-bottom:14px}
+.steps h3{margin:0 0 6px;font-size:21px;letter-spacing:-.015em}
+.steps p{margin:0;color:var(--ink2)}
+.shot{border-radius:12px;box-shadow:0 24px 48px -26px rgba(51,53,122,.5),0 0 0 1px var(--line);background:#fff}
+.how-shot{margin-top:44px}
+.band{background:var(--white);border-block:1px solid var(--line)}
+.feature{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:56px;align-items:center;margin-top:76px}
+.feature:first-of-type{margin-top:0}
+.feature.flip{grid-template-columns:minmax(0,6fr) minmax(0,5fr)}
+.feature.flip .text{order:2}
+.feature h3{font-size:28px;letter-spacing:-.025em;line-height:1.15;margin:0 0 12px}
+.feature p{margin:0;color:var(--ink2);max-width:30em}
+.bar-shot{padding:22px;background:linear-gradient(135deg,#e4e5f7,#f4f4fa);border-radius:14px;display:grid;place-items:center}
+.bar-shot img{border-radius:12px;width:100%;max-width:520px}
+.dl{background:var(--brand-deep);color:#fff;border-radius:22px;padding:56px;display:grid;grid-template-columns:1fr auto;gap:32px;align-items:center}
+.dl h2{color:#fff;margin:0 0 10px}
+.dl p{margin:0;color:#d4d5f2;max-width:32em}
+.dl .btn{background:#fff;color:var(--brand-deep);font-size:18px;padding:16px 28px}
+.dl .btn:hover{background:var(--brand-soft)}
+.dl small{display:block;margin-top:10px;color:#b9bbe6;text-align:center}
+footer{padding:36px 0 56px;color:var(--ink2);font-size:15px}
+footer p{margin:0 0 8px;max-width:46em}
+
+@media (max-width:860px){
+  .hero,.feature,.feature.flip{grid-template-columns:1fr;gap:30px}
+  .feature.flip .text{order:0}
+  .steps{grid-template-columns:1fr}
+  .dl{grid-template-columns:1fr;padding:34px}
+  section{padding:52px 0}
+  .out{position:static;margin-top:10px;transform:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="#"><img src="screenshots/icon.png" alt="" width="30" height="30">SlideCatch</a>
+    <a class="btn small" href="https://github.com/abdelhaouari-AE/SlideCatch/releases/latest">Download</a>
+  </header>
+
+  <div class="hero">
+    <div>
+      <h1>Every Teams slide, caught.</h1>
+      <p class="lead">SlideCatch watches a presentation in Microsoft Teams and keeps a picture of each slide. When it ends, you get a PowerPoint, a PDF or pictures.</p>
+      <div class="cta">
+        <a class="btn" href="https://github.com/abdelhaouari-AE/SlideCatch/releases/latest">Download for Windows</a>
+        <a class="btn ghost" href="#how">How it works</a>
+      </div>
+      <p class="meta">Free · about 25 MB · works offline</p>
+    </div>
+
+    <div class="stage" aria-hidden="true">
+      <div class="win">
+        <div class="win-bar"><i></i><i></i><i></i><b>Weekly design review</b></div>
+        <div class="win-body">
+          <div class="shared" id="shared">
+            <div class="slide s-title on" data-i="0"><h4>Weekly design review</h4><small>Presented by the project team</small></div>
+            <div class="slide" data-i="1"><h4>Budget by package</h4><div class="bars"><i style="height:45%"></i><i style="height:80%"></i><i style="height:60%"></i><i style="height:95%"></i><i style="height:50%"></i></div></div>
+            <div class="slide" data-i="2"><h4>Decisions this week</h4><div class="lines"><i></i><i></i><i></i><i></i></div></div>
+            <div class="slide" data-i="3"><h4>Next milestones</h4><div class="track"><i></i><i></i><i></i><i></i></div></div>
+            <div class="frame"></div>
+            <div class="flash" id="flash"></div>
+            <div class="shutter" id="shutter">Slide saved</div>
+          </div>
+          <div class="tiles"><span></span><span></span><span></span></div>
+        </div>
+      </div>
+      <div class="strip">
+        <div class="slots" id="slots"><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div></div>
+        <div class="count" id="count">0 slides</div>
+      </div>
+      <div class="out" id="out"><span>.pptx</span><span>.pdf</span><span>.png</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="band"><section id="how"><div class="wrap">
+  <h2>How it works</h2>
+  <p class="sub">Open your meeting as usual. SlideCatch does the rest.</p>
+  <ol class="steps">
+    <li><h3>Pick the meeting window</h3><p>SlideCatch finds the shared slide inside it and leaves out the chat and the video tiles.</p></li>
+    <li><h3>Press Start</h3><p>A small bar saves each new slide the moment it appears. The meeting window can stay behind other windows.</p></li>
+    <li><h3>Review and export</h3><p>Reorder, crop or delete slides, then save a PowerPoint, a PDF or pictures.</p></li>
+  </ol>
+  <img class="shot how-shot" src="screenshots/main.png" alt="SlideCatch main window with the live preview of a Teams slide" width="1000" height="660">
+</div></section></div>
+
+<section><div class="wrap">
+  <h2>Made for meeting notes you can reuse</h2>
+  <p class="sub">Small, quick and quiet while the presentation runs.</p>
+
+  <div class="feature">
+    <div class="text"><h3>Only real slides are kept</h3><p>Webcams, the mouse pointer and half-finished transitions are ignored. Going back to a slide never saves it twice.</p></div>
+    <div class="bar-shot"><img class="shot" src="screenshots/minibar.png" alt="The small capture bar at the top of the screen" width="650" height="110"></div>
+  </div>
+
+  <div class="feature flip">
+    <div class="text"><h3>Fix it before you export</h3><p>Reorder by dragging, crop, delete, undo. Animated slides built line by line can be reduced to their final step.</p></div>
+    <img class="shot" src="screenshots/review.png" alt="Review window with captured slides" width="1240" height="800">
+  </div>
+
+  <div class="feature">
+    <div class="text"><h3>Nothing is lost</h3><p>Each slide is written to disk when it is caught. If the computer stops, SlideCatch offers to restore the session at the next start.</p></div>
+    <img class="shot" src="screenshots/settings.png" alt="SlideCatch settings" width="580" height="720" style="max-width:420px;margin:auto">
+  </div>
+
+  <div class="feature flip">
+    <div class="text"><h3>Light or dark, in your language</h3><p>English, French, Spanish, German and Arabic, with the Microsoft Teams colours.</p></div>
+    <img class="shot" src="screenshots/main-en-dark.png" alt="SlideCatch in the dark theme" width="1000" height="660">
+  </div>
+</div></section>
+
+<section id="download" style="padding-top:20px"><div class="wrap">
+  <div class="dl">
+    <div>
+      <h2>Get SlideCatch</h2>
+      <p>Windows 10 or 11. Download the zip, unzip it anywhere and run SlideCatch.exe. It works offline and goes online only to offer you updates.</p>
+    </div>
+    <div>
+      <a class="btn" href="https://github.com/abdelhaouari-AE/SlideCatch/releases/latest">Download for Windows</a>
+      <small>Free · no account</small>
+    </div>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  <p>You use SlideCatch at your own responsibility. Ask the presenter's permission before you capture.</p>
+  <p>© 2026 Abdelhalim EL HAOUARI · <a href="https://github.com/abdelhaouari-AE/SlideCatch/blob/main/TERMS.md">Terms of use</a> · <a href="https://github.com/abdelhaouari-AE/SlideCatch">GitHub</a></p>
+</div></footer>
+
+<script>
+(function(){
+  var shared=document.getElementById('shared'), slides=[].slice.call(shared.querySelectorAll('.slide')),
+      slots=[].slice.call(document.querySelectorAll('.slot')), flash=document.getElementById('flash'),
+      shutter=document.getElementById('shutter'), count=document.getElementById('count'), out=document.getElementById('out');
+  var placed=[];
+  function put(i){ // thumbnail in the strip: the real slide, scaled down
+    var s=slides[i].cloneNode(true); s.classList.add('on'); s.style.cssText='position:absolute;left:0;top:0;transform-origin:0 0';
+    slots[i].innerHTML=''; slots[i].appendChild(s); placed[i]=s; fit();
+  }
+  function fit(){
+    var a=shared.getBoundingClientRect();
+    placed.forEach(function(s,i){ if(!s||!slots[i].contains(s))return;
+      var w=slots[i].getBoundingClientRect().width;
+      s.style.width=a.width+'px'; s.style.height=a.height+'px'; s.style.transform='scale('+(w/a.width)+')'; });
+  }
+  window.addEventListener('resize',fit);
+  function label(n){count.textContent=n+(n===1?' slide':' slides');}
+  var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce){ for(var k=0;k<4;k++)put(k); label(4); out.classList.add('on'); return; }
+  var wait=function(ms){return new Promise(function(r){setTimeout(r,ms)})};
+  async function run(){
+    for(;;){
+      slots.forEach(function(s){s.innerHTML=''}); placed=[]; label(0); out.classList.remove('on');
+      for(var i=0;i<4;i++){
+        slides.forEach(function(s,j){s.classList.toggle('on',j===i)});
+        await wait(1100);                                   // slide steady
+        flash.animate([{opacity:.85},{opacity:0}],{duration:380,easing:'ease-out'});
+        shutter.classList.add('on');
+        var a=shared.getBoundingClientRect(), b=slots[i].getBoundingClientRect();
+        var fly=document.createElement('div'); fly.className='fly';
+        fly.style.cssText='left:'+a.left+'px;top:'+a.top+'px;width:'+a.width+'px;height:'+a.height+'px';
+        var c=slides[i].cloneNode(true); c.classList.add('on'); fly.appendChild(c); document.body.appendChild(fly);
+        await fly.animate([{transform:'none'},{transform:'translate('+(b.left-a.left)+'px,'+(b.top-a.top)+'px) scale('+(b.width/a.width)+')'}],
+                          {duration:650,easing:'cubic-bezier(.5,0,.2,1)',fill:'forwards'}).finished;
+        fly.remove(); put(i); label(i+1); shutter.classList.remove('on');
+        await wait(500);
+      }
+      out.classList.add('on');
+      await wait(2600);
+    }
+  }
+  var vis=true; new IntersectionObserver(function(e){vis=e[0].isIntersecting}).observe(shared);
+  run();
+})();
+</script>
+</body>
+</html>
