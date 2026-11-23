@@ -1,6 +1,6 @@
 # SlideCatch — Developer guide
 
-For whoever changes SlideCatch: how to set up the computer, how each part works, the usual changes step by step, and how to publish a new version. Version described: **0.1.0**.
+For whoever changes SlideCatch: how to set up the computer, how each part works, the usual changes step by step, and how to publish a new version. Version described: **0.2.1**.
 
 ---
 
@@ -132,6 +132,8 @@ Every export goes to `name.part` first and is renamed when complete; *Cancel* re
 - **Icons** are SVG paths in `ui/icons.py` (Lucide style), drawn at the needed size and colour. Icons that point somewhere (`MIRRORED`) are flipped in Arabic.
 - **Arabic**: `app.setLayoutDirection(RightToLeft)` mirrors every layout; pictures (preview, area and crop selectors) are forced left-to-right because a slide is never mirrored. `i18n.bidi_safe()` keeps "…" on the right side of a Latin window title in the Arabic interface.
 - **Shortcuts**: `win32.HotkeyListener` registers Ctrl+Alt+S/C/P system-wide in its own thread (they work while Teams has the focus). If another program already uses one, a message says so.
+- **Pop-ups**: tooltips and menus are drawn by Qt in a square opaque window; `theme._RoundedPopups` makes them see-through before they show so the style sheet's rounded corners are visible. A QSS `border-radius` on a label or frame also needs a `border` to be drawn round.
+- **Mini bar**: fixed height, a width reserved for each text (`_reserve_widths`), messages in a reserved strip, shadow painted by hand, `WindowDoesNotAcceptFocus` so a click never takes the focus from Teams. `tests/test_ui.py::test_mini_bar_keeps_its_size` guards it.
 - The mini bar is excluded from every capture (`SetWindowDisplayAffinity`), so it never appears in the slides.
 
 ---
@@ -173,7 +175,8 @@ Change the constants at the top of `core/detect.py`, run `pytest tests/test_dete
 | `test_i18n.py` | all texts translated, placeholders, plurals, right-to-left helpers |
 | `test_config.py` | settings file, repairs, portable mode |
 | `test_ui.py` | windows in 3 languages; start → 2 slides → stop → review → export, driven like a person |
-| `test_windows.py` | **Windows only**: real captures (WGC, PrintWindow, screen), covered window, minimized/closed window, mini bar invisible in captures, shortcuts |
+| `test_updates.py` | versions, release data, safe unzip, download with a local server, update dialog logic, terms shown at first start |
+| `test_windows.py` | **Windows only**: the update helper script (files replaced, folders kept, rollback),  real captures (WGC, PrintWindow, screen), covered window, minimized/closed window, mini bar invisible in captures, shortcuts |
 
 No picture files are stored: `tests/fakes.py` draws slides and Teams-like windows.
 
@@ -186,8 +189,8 @@ No picture files are stored: `tests/fakes.py` draws slides and Teams-like window
 Choices that keep the download small and the start fast:
 
 - **Folder build, not a single .exe**: a single .exe unpacks itself at every start (slow, and scanned again by antivirus software).
-- **PySide6-Essentials** instead of full PySide6, and the `.spec` keeps only Qt Core, Gui, Widgets, Svg and the Windows platform plugin; software OpenGL (20 MB), the Direct3D compiler, image-format plugins and Qt translations other than French and Arabic are left out.
-- No NumPy, Pillow, python-pptx or pywin32 at run time; unused Python modules (`ssl`, `hashlib`, `xml`, `email`, `decimal`, `unicodedata`…) are excluded.
+- **PySide6-Essentials** instead of full PySide6, and the `.spec` keeps only Qt Core, Gui, Widgets, Svg, Network (update check, with the Windows TLS plug-in; OpenSSL is left out, 6.6 MB) and the Windows platform plugin; software OpenGL (20 MB), the Direct3D compiler, image-format plugins and Qt translations other than French and Arabic are left out.
+- No NumPy, Pillow, python-pptx or pywin32 at run time; unused Python modules (`ssl`, `hashlib` — Qt does https and checksums —, `xml`, `email`, `decimal`, `unicodedata`…) are excluded.
 - **No UPX** compression: compressed DLLs start slower and alarm some antivirus tools.
 
 The build server prints the folder and zip sizes and the 12 biggest files in each run's summary (**Actions** tab). If a change makes the build bigger, that table shows where.
