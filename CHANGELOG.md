@@ -2,6 +2,11 @@
 
 All notable changes to SlideCatch. Versions follow `MAJOR.MINOR.PATCH`.
 
+## 0.2.1 — 2026-11-23
+
+### Size
+- The 0.2.0 build carried OpenSSL (`libcrypto`, 6.6 MB) that SlideCatch does not use (https goes through Windows' own TLS). Removed: the download is back near 23 MB.
+
 ## 0.2.0 — 2026-11-23
 
 ### New
@@ -16,7 +21,7 @@ All notable changes to SlideCatch. Versions follow `MAJOR.MINOR.PATCH`.
 - Capture bar: fixed height, fixed width for every text (paused, 0 to 99 slides…), messages shown in a reserved strip under the bar, shadow painted by hand (no ghost icons), the bar never takes the keyboard focus from Teams.
 
 ### Size
-- Adds Qt Network (+ the Windows TLS plug-in) for the update check, about 1.5 MB unpacked.
+- Adds Qt Network (+ the Windows TLS plug-in) for the update check, about 2 MB unpacked.
 
 ## 0.1.0 — 2026-11-13
 

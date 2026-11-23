@@ -59,7 +59,8 @@ QT_PLUGINS = ("platforms/qwindows.",
               "platforms/libqxcb.", "platforms/libqoffscreen.")         # Linux test builds only
 QT_TRANSLATIONS = ("qtbase_fr.", "qtbase_ar.")                         # Copy, Paste... in fr/ar
 QT_PYTHON_MODULES = ("qtcore.", "qtgui.", "qtwidgets.", "qtsvg.", "qtnetwork.")
-NEVER = ("opengl32sw", "d3dcompiler")                                  # 20 MB + 4 MB, unused
+NEVER = ("opengl32sw", "d3dcompiler",                                   # 20 MB + 4 MB, unused
+         "libcrypto", "libssl")                                         # OpenSSL (6.6 MB): Qt uses Windows Schannel
 
 
 def keep(dest: str) -> bool:
