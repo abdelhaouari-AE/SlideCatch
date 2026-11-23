@@ -77,6 +77,9 @@ class Settings:
     ignore_live: bool = True           # ignore the mouse pointer and video tiles
     auto_merge: bool = False           # keep only the last step of animations
     hotkeys: bool = True               # system-wide shortcuts
+    check_updates: bool = True         # look for a new version when SlideCatch starts
+    last_update_check: float = 0.0     # time of the last check (seconds since 1970)
+    skipped_version: str = ""          # a version the person chose not to be reminded of
     sessions_dir: str = ""             # "" = default
     export_dir: str = ""               # last folder used for exports
     export_format: str = "pptx"        # "pptx", "pdf" or "png"

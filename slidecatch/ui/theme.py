@@ -5,6 +5,7 @@ The colours follow Microsoft's Fluent 2 "Teams" theme: purple brand
 token below; changing the look means changing these values only.
 """
 
+from PySide6.QtCore import QEvent, QObject, Qt
 from PySide6.QtGui import QColor, QFont, QPalette
 from PySide6.QtWidgets import QApplication
 
@@ -141,7 +142,8 @@ def _indicator_images(tokens: dict) -> dict:
     paths = {}
     if folder is None:
         return paths
-    for key, name, color in (("check", "check", "#FFFFFF"), ("chevron", "chevron_down", tokens["text2"])):
+    for key, name, color in (("check", "check", "#FFFFFF"), ("chevron", "chevron_down", tokens["text2"]),
+                             ("menucheck", "check", tokens["brand_fg"])):
         path = os.path.join(folder, "%s-%s.png" % (key, color.strip("#")))
         if not os.path.isfile(path):
             icons.pixmap(name, color, 12, 2.0).save(path)
@@ -156,12 +158,38 @@ def _cache_root() -> str:
     return os.path.join(config.config_dir(), "cache")
 
 
+class _RoundedPopups(QObject):
+    """Lets tooltips and menus (the language and help menus) have really round corners.
+
+    Qt draws these pop-ups inside an opaque rectangular window, so whatever
+    radius the style sheet asks for, the four corners stay square (a dark
+    or white tip shows behind the curve). Before such a window is shown for
+    the first time, this filter makes its background transparent and removes
+    the Windows shadow frame; the style sheet then draws the rounded shape.
+    """
+
+    POPUPS = ("QTipLabel", "QMenu")
+
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.Type.Polish and obj.isWidgetType() and obj.isWindow():
+            if any(obj.inherits(name) for name in self.POPUPS):
+                obj.setWindowFlag(Qt.WindowType.NoDropShadowWindowHint, True)
+                obj.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+        return False
+
+
+_popup_filter = {}
+
+
 def apply(app: QApplication, theme: str = "light"):
     name = resolve(theme)
     tokens = DARK if name == "dark" else LIGHT
     _current["name"], _current["tokens"] = name, tokens
     app.setStyle("Fusion")
     app.setFont(base_font())
+    if "filter" not in _popup_filter:
+        _popup_filter["filter"] = _RoundedPopups(app)
+        app.installEventFilter(_popup_filter["filter"])
     pal = QPalette()
     pal.setColor(QPalette.ColorRole.Window, QColor(tokens["bg"]))
     pal.setColor(QPalette.ColorRole.WindowText, QColor(tokens["text"]))
@@ -190,11 +218,12 @@ def style_sheet(t: dict, images: dict = None) -> str:
     images = images or {}
     check = 'image: url("%s");' % images["check"] if "check" in images else ""
     chevron = 'image: url("%s");' % images["chevron"] if "chevron" in images else ""
+    menu_check = 'image: url("%s");' % images["menucheck"] if "menucheck" in images else ""
     return f"""
 QWidget {{ color: {t['text']}; font-size: 13px; }}
 QMainWindow, QDialog {{ background: {t['bg']}; }}
-QToolTip {{ background: {t['surface']}; color: {t['text']}; border: 1px solid {t['border']};
-            padding: 4px 6px; border-radius: 4px; }}
+QToolTip {{ background: {t['surface']}; color: {t['text']}; border: 1px solid {t['border_strong']};
+            padding: 5px 8px; border-radius: 6px; }}
 
 QFrame#card {{ background: {t['surface']}; border: 1px solid {t['border']}; border-radius: 10px; }}
 QFrame#bar {{ background: {t['surface']}; border: none; }}
@@ -259,7 +288,8 @@ QToolButton {{ background: transparent; border: none; border-radius: 6px; paddin
 QToolButton:hover {{ background: {t['hover']}; }}
 QToolButton:pressed {{ background: {t['pressed']}; }}
 QToolButton:disabled {{ color: {t['text3']}; }}
-QToolButton[kind="text"] {{ padding: 5px 9px; font-weight: 500; }}
+QToolButton[kind="text"] {{ padding: 5px 9px; font-weight: 600; color: {t['text2']}; }}
+QToolButton[kind="text"]:hover {{ color: {t['text']}; }}
 QToolButton::menu-indicator {{ image: none; width: 0; }}
 
 QLineEdit, QSpinBox, QComboBox {{ background: {t['surface']}; border: 1px solid {t['border_strong']};
@@ -291,8 +321,10 @@ QScrollBar::handle:horizontal {{ background: {t['border_strong']}; border-radius
 QProgressBar {{ background: {t['subtle']}; border: none; border-radius: 3px; height: 6px; text-align: center; }}
 QProgressBar::chunk {{ background: {t['brand']}; border-radius: 3px; }}
 
-QMenu {{ background: {t['surface']}; border: 1px solid {t['border']}; border-radius: 6px; padding: 4px; }}
-QMenu::item {{ padding: 6px 20px 6px 12px; border-radius: 4px; }}
+QMenu {{ background: {t['surface']}; border: 1px solid {t['border']}; border-radius: 8px; padding: 4px; }}
+QMenu::item {{ padding: 6px 20px 6px 12px; border-radius: 4px; margin: 1px 0; }}
+QMenu::indicator {{ width: 14px; height: 14px; left: 6px; }}
+QMenu::indicator:non-exclusive:checked, QMenu::indicator:exclusive:checked {{ {menu_check} }}
 QMenu::item:selected {{ background: {t['brand_tint']}; color: {t['text']}; }}
 QMenu::separator {{ height: 1px; background: {t['border']}; margin: 4px 6px; }}
 

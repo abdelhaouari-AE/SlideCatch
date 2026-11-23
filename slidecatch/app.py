@@ -13,7 +13,7 @@ import traceback
 
 from . import APP_NAME, APP_VERSION, config
 
-TERMS_VERSION = "1"
+TERMS_VERSION = "2"
 log = logging.getLogger("slidecatch")
 
 
@@ -62,6 +62,22 @@ def load_qt_translation(app, language: str) -> bool:
     return False
 
 
+def ensure_terms(settings) -> bool:
+    """First start (or new terms): show the terms and ask to accept them.
+
+    Returns False when the person declines - SlideCatch then quits and keeps
+    nothing, so the question is asked again at the next start."""
+    if settings.terms_accepted == TERMS_VERSION:
+        return True
+    from .ui.dialogs import TermsDialog
+    if TermsDialog().exec() != TermsDialog.DialogCode.Accepted:
+        log.info("Terms of use declined")
+        return False
+    settings.terms_accepted = TERMS_VERSION
+    config.save(settings)
+    return True
+
+
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
     if "--self-test" in argv:
@@ -78,7 +94,7 @@ def main(argv=None):
 
     from . import i18n
     from .ui import theme
-    from .ui.dialogs import TermsDialog, resource_path
+    from .ui.dialogs import resource_path
 
     settings = config.load()
     i18n.set_language(settings.language)
@@ -107,15 +123,16 @@ def main(argv=None):
 
     sys.excepthook = excepthook
 
-    if settings.terms_accepted != TERMS_VERSION:
-        if TermsDialog().exec() != TermsDialog.DialogCode.Accepted:
-            return 0
-        settings.terms_accepted = TERMS_VERSION
-        config.save(settings)
+    if not ensure_terms(settings):
+        return 0
 
     from .ui.controller import AppController
     controller = AppController(app, settings)
     controller.show()
+    # After the window is up: tell about a failed update, then look for a new version.
+    from PySide6.QtCore import QTimer
+    QTimer.singleShot(500, controller.updates.report_previous_update)
+    QTimer.singleShot(4000, controller.updates.auto_check)
     code = app.exec()
     log.info("%s closed", APP_NAME)
     return code

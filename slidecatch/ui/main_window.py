@@ -12,7 +12,7 @@ Layout (mirrored automatically in Arabic):
 import os
 
 from PySide6.QtCore import QFileInfo, QRect, QSize, Qt, QTimer, Signal
-from PySide6.QtGui import QFont, QFontMetrics, QIcon, QPainter, QPen, QPixmap
+from PySide6.QtGui import QActionGroup, QFont, QFontMetrics, QIcon, QPainter, QPen
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QFileIconProvider,
@@ -29,7 +29,7 @@ from PySide6.QtWidgets import (
 )
 
 from .. import APP_NAME
-from ..i18n import LANGUAGES, N_, bidi_safe, language, tr, trn
+from ..i18n import LANGUAGES, N_, bidi_safe, tr, trn
 from . import icons, theme
 from . import widgets as w
 from .dialogs import resource_path
@@ -166,10 +166,8 @@ class MainWindow(QMainWindow):
         bar = w.card("barTop")
         row = w.hbox(bar, (16, 10, 10, 10), 10)
         logo = w.label()
-        pixmap = QPixmap(resource_path("icon.png"))
-        if not pixmap.isNull():
-            logo.setPixmap(pixmap.scaled(30, 30, Qt.AspectRatioMode.KeepAspectRatio,
-                                         Qt.TransformationMode.SmoothTransformation))
+        logo.setPixmap(icons.logo_pixmap(resource_path("icon.png"), 30))
+        logo.setFixedSize(30, 30)
         row.addWidget(logo)
         names = w.vbox(spacing=0)
         names.addWidget(w.label(APP_NAME, "appName"))
@@ -179,15 +177,21 @@ class MainWindow(QMainWindow):
 
         self.language_button = w.tool_button("language", tr("Language"))
         self.language_button.setProperty("kind", "text")
-        self.language_button.setText(language().upper())
+        self.language_button.setText(self.controller.settings.language.upper())
         self.language_button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
         self.language_button.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
         menu = QMenu(self)
+        # An exclusive group: choosing a language un-ticks the previous one, so
+        # exactly one language is ticked at any time (like a radio button).
+        self.language_group = QActionGroup(menu)
+        self.language_group.setExclusive(True)
         for code, name in LANGUAGES.items():
             action = menu.addAction(name)
             action.setCheckable(True)
-            action.setChecked(code == language())
-            action.triggered.connect(lambda _=False, c=code: self.controller.change_language(c))
+            action.setData(code)
+            action.setChecked(code == self.controller.settings.language)
+            self.language_group.addAction(action)
+        self.language_group.triggered.connect(self._language_chosen)
         self.language_button.setMenu(menu)
         row.addWidget(self.language_button)
 
@@ -199,6 +203,7 @@ class MainWindow(QMainWindow):
         help_menu.addSeparator()
         help_menu.addAction(tr("Open the sessions folder"), self.controller.open_sessions_folder)
         help_menu.addSeparator()
+        help_menu.addAction(tr("Check for updates…"), self.controller.check_for_updates)
         help_menu.addAction(tr("About SlideCatch"), self.controller.show_about)
         help_button.setMenu(help_menu)
         row.addWidget(help_button)
@@ -207,6 +212,15 @@ class MainWindow(QMainWindow):
         settings_button.clicked.connect(self.controller.show_settings)
         row.addWidget(settings_button)
         return bar
+
+    def _language_chosen(self, action):
+        """Keep the label and the ticks in step with the language really saved."""
+        code = action.data()
+        self.controller.change_language(code)
+        saved = self.controller.settings.language
+        self.language_button.setText(saved.upper())
+        for item in self.language_group.actions():
+            item.setChecked(item.data() == saved)
 
     def _source_card(self):
         card = w.card()

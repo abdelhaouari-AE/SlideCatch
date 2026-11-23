@@ -80,6 +80,6 @@ The captured pictures are never changed: crops, deletions and the order are appl
 
 ## Privacy
 
-Everything stays on your computer: SlideCatch never sends anything over the internet. Ask the presenter's permission before capturing, as you would before recording a meeting.
+Everything stays on your computer. The only thing SlideCatch contacts is GitHub, to see whether a new version exists (you can turn this off in Settings), and it installs an update only when you click "Update now". Ask the presenter's permission before capturing, as you would before recording a meeting.
 
 SlideCatch {APP_VERSION} — © {APP_YEAR} {APP_AUTHOR}

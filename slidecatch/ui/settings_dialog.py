@@ -1,7 +1,7 @@
 """Settings (opened with the gear button)."""
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QComboBox, QDialog, QFileDialog, QScrollArea, QWidget
+from PySide6.QtWidgets import QDialog, QFileDialog, QScrollArea, QWidget
 
 from .. import APP_NAME
 from ..i18n import LANGUAGES, N_, tr
@@ -84,13 +84,20 @@ class SettingsDialog(QDialog):
                                   ("system", tr("System"))], settings.theme)
         rows.addWidget(self._row(tr("Theme"), "", self.theme))
         rows.addWidget(w.hline())
-        self.language = QComboBox()
-        for code, name in LANGUAGES.items():
-            self.language.addItem(name, code)
-        self.language.setCurrentIndex(max(0, self.language.findData(settings.language)))
+        # Three choices: a segmented control shows them all at once and only
+        # one can be active (no drop-down list to draw).
+        self.language = w.Segmented([(code, name) for code, name in LANGUAGES.items()],
+                                    settings.language)
         self.language.setAccessibleName(tr("Language"))
         rows.addWidget(self._row(tr("Language"), tr("Applied after SlideCatch restarts."),
                                  self.language))
+        rows.addWidget(w.hline())
+        self.check_updates = w.Toggle(settings.check_updates)
+        self.check_updates.setAccessibleName(tr("Check for updates when SlideCatch starts"))
+        rows.addWidget(self._row(tr("Check for updates when SlideCatch starts"),
+                                 tr("Asks GitHub whether a newer version exists. Nothing else is "
+                                    "sent, and nothing is installed without your agreement."),
+                                 self.check_updates))
         rows.addWidget(w.hline())
         self.folder = settings.sessions_root()
         self.folder_label = w.label(self.folder, "small", wrap=True)
@@ -148,6 +155,7 @@ class SettingsDialog(QDialog):
             "auto_merge": self.auto_merge.isChecked(),
             "hotkeys": self.hotkeys.isChecked(),
             "theme": self.theme.current(),
-            "language": self.language.currentData(),
+            "language": self.language.current(),
+            "check_updates": self.check_updates.isChecked(),
             "sessions_dir": self.folder,
         }

@@ -8,6 +8,7 @@ from PySide6.QtWidgets import QCheckBox, QDialog, QLabel, QScrollArea, QTextBrow
 
 from .. import APP_AUTHOR, APP_NAME, APP_VERSION, APP_YEAR
 from ..i18n import language, resource_name, tr
+from . import icons
 from . import widgets as w
 from .rect_select import RectSelector
 
@@ -38,18 +39,28 @@ def _browser(markdown: str) -> QTextBrowser:
 
 
 class TermsDialog(QDialog):
-    """Shown at first start; "I agree" is enabled once the box is ticked."""
+    """Shown at the first start (and when the terms change).
+
+    The box "I have read and I accept" can be ticked only after the text has
+    been scrolled to its end, and "I agree" only after the box is ticked.
+    Closing the window or choosing "Decline" refuses the terms: SlideCatch quits.
+    """
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle(tr("Terms of use") + " - " + APP_NAME)
-        self.resize(640, 600)
+        self.setWindowFlag(Qt.WindowType.WindowContextHelpButtonHint, False)
+        self.resize(640, 620)
         layout = w.vbox(self, (24, 20, 24, 20), 12)
         layout.addWidget(w.label(tr("Terms of use"), "h1"))
         layout.addWidget(w.label(tr("Please read and accept these terms before using SlideCatch."),
                                  "muted", wrap=True))
-        layout.addWidget(_browser(read_text("terms")), 1)
+        self.browser = _browser(read_text("terms"))
+        layout.addWidget(self.browser, 1)
+        self.hint = w.label(tr("Scroll to the end of the text to continue."), "small")
+        layout.addWidget(self.hint)
         self.check = QCheckBox(tr("I have read and I accept the terms of use."))
+        self.check.setEnabled(False)
         layout.addWidget(self.check)
         row = w.hbox(spacing=8)
         row.addStretch(1)
@@ -62,6 +73,19 @@ class TermsDialog(QDialog):
         self.check.toggled.connect(self.agree.setEnabled)
         decline.clicked.connect(self.reject)
         self.agree.clicked.connect(self.accept)
+        bar = self.browser.verticalScrollBar()
+        bar.valueChanged.connect(self._scrolled)
+        bar.rangeChanged.connect(lambda *_: self._scrolled())
+
+    def _scrolled(self, *_):
+        bar = self.browser.verticalScrollBar()
+        if bar.value() >= bar.maximum() - 4:      # at the end (or nothing to scroll)
+            self.check.setEnabled(True)
+            self.hint.hide()
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        self._scrolled()
 
 
 class TextDialog(QDialog):
@@ -93,10 +117,7 @@ class AboutDialog(QDialog):
         self.setWindowTitle(tr("About") + " - " + APP_NAME)
         layout = w.vbox(self, (40, 28, 40, 24), 6)
         logo = QLabel()
-        pixmap = QPixmap(resource_path("icon.png"))
-        if not pixmap.isNull():
-            logo.setPixmap(pixmap.scaled(72, 72, Qt.AspectRatioMode.KeepAspectRatio,
-                                         Qt.TransformationMode.SmoothTransformation))
+        logo.setPixmap(icons.logo_pixmap(resource_path("icon.png"), 72))
         logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(logo)
         name = w.label(APP_NAME, "appName")

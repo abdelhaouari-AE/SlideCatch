@@ -34,6 +34,7 @@ slidecatch/
   config.py                 settings (JSON) and portable mode
   i18n.py                   tr() / trn() translations, right-to-left helpers
   export.py                 PowerPoint / PDF / PNG export of a session
+  updater.py                updates without Qt: versions, release data, unzip, helper script
   selftest.py               SlideCatch.exe --self-test report.json
   core/                     no Qt in here: plain Python + ctypes
     win32.py                Windows functions: window list, PrintWindow, screen copy, hotkeys
@@ -50,6 +51,7 @@ slidecatch/
     mini_bar.py             the small always-on-top bar during a capture
     review.py               review grid, export panel
     settings_dialog.py      settings
+    updates.py              update check + download + "Update now" dialog (Qt Network)
     dialogs.py              terms, about, guide, crop, area, full-size viewer
     workers.py              background threads (capture, preview, export, thumbnails)
     preview.py, rect_select.py, region_select.py   drawing widgets
@@ -196,12 +198,12 @@ If the self-test fails after a change to the `.spec`, the report (`selftest.json
 
 ## 7. Publishing a new version
 
-1. Change the version in **`slidecatch/__init__.py`** (`APP_VERSION`) and in `pyproject.toml`.
+1. Change the version in **`slidecatch/__init__.py`** (`APP_VERSION`) and in `pyproject.toml`. Installed copies find the new version by themselves (see section 9).
 2. Add a section at the top of **`CHANGELOG.md`**.
 3. Commit and push to `main`.
-4. The build server tests and builds; when everything is green and no release `v0.1.1` exists yet, it publishes the **Release** `v0.1.1` (tag included) with `SlideCatch-0.1.1-portable.zip` and that version's CHANGELOG section as notes. No manual tagging needed.
+4. The build server tests and builds; when everything is green and no release `v0.2.1` exists yet, it publishes the **Release** `v0.2.1` (tag included) with `SlideCatch-0.2.1-portable.zip`, its `.sha256` checksum file and that version's CHANGELOG section as notes. No manual tagging needed.
 
-Version numbers: `0.1.1` for fixes, `0.2.0` for new functions, `1.0.0` when it is ready for everyone.
+Version numbers: `0.2.1` for fixes, `0.3.0` for new functions, `1.0.0` when it is ready for everyone.
 
 ---
 
@@ -211,3 +213,19 @@ Version numbers: `0.1.1` for fixes, `0.2.0` for new functions, `1.0.0` when it i
 - **Self-test on any PC**: `SlideCatch.exe --self-test "%USERPROFILE%\Desktop\selftest.json"` — checks the interface, the detection, the exports and each capture method on that computer.
 - **Windows SmartScreen** ("Windows protected your PC"): the program is not code-signed. *More info → Run anyway*. A code-signing certificate removes this warning; it can be added to the build later.
 - **Known limits of 0.1.0**: a dark slide on Teams' dark stage may not be found automatically (whole window used — draw the area once); a screen-region capture needs the region visible; OCR (searchable text) is planned for a later version.
+
+---
+
+## 9. How the update works
+
+`slidecatch/updater.py` (no Qt, tested on its own) and `slidecatch/ui/updates.py` (network and windows).
+
+1. At start-up, at most every 20 hours (setting "Check for updates when SlideCatch starts"), `UpdateManager` asks `https://api.github.com/repos/<RELEASES_REPO>/releases/latest`. The repository name is the constant `RELEASES_REPO` in `updater.py`.
+2. If the release is newer than `APP_VERSION`, `UpdateDialog` shows the release notes: **Update now**, **Later**, **Skip this version**.
+3. "Update now" downloads `SlideCatch-<v>-portable.zip.sha256` and the zip (only from `github.com/<repo>/releases/download/`), compares the SHA-256, unzips to `%APPDATA%\SlideCatch\updates\new`.
+4. `updater.start_script()` writes and starts `apply-update.bat`; SlideCatch quits. The script waits until `SlideCatch.exe` can be renamed (= the program has closed), moves `SlideCatch.exe` and `_internal` aside as `.old`, copies the new files with `robocopy` (never deletes other folders: portable `settings`, `sessions`...), starts the new program and deletes the `.old` files. If a step fails it puts the `.old` files back, restarts the old version and writes the reason to `updates\result.txt`, which the next start shows.
+5. Works only for the built Windows program in a writable folder; from source or in a read-only folder the dialog offers "Open the download page".
+
+**The repository must be public** (or releases published in a separate public repository, then change `RELEASES_REPO`): GitHub answers 404 to anyone not signed in when the repository is private, and the update check shows "No update information was found".
+
+To try it without waiting for a release, point `updater.API_URL` at a small local web server (see `tests/test_updates.py` for one).

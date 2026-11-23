@@ -27,6 +27,7 @@ from .mini_bar import MiniBar
 from .region_select import RegionSelector
 from .review import ReviewWindow
 from .settings_dialog import SettingsDialog
+from .updates import UpdateManager
 from .workers import CaptureWorker, HotkeyBridge, PreviewWorker
 
 log = logging.getLogger(__name__)
@@ -62,6 +63,7 @@ class AppController(QObject):
         self.preview_worker.problem.connect(self._preview_problem)
         self.preview_worker.start()
 
+        self.updates = UpdateManager(self)
         self.main = None
         self._make_main_window()
         self._apply_hotkeys()
@@ -493,6 +495,19 @@ class AppController(QObject):
         self.shutdown()
         QProcess.startDetached(program, args)
         self.app.quit()
+
+    # ---------------------------------------------------------- updates
+    def ready_for_update(self) -> bool:
+        """An update restarts the program: not while capturing or reviewing."""
+        return self.capture_worker is None and not self.reviews
+
+    def quit_for_update(self):
+        """The helper script is waiting for SlideCatch to close."""
+        self.shutdown()
+        self.app.quit()
+
+    def check_for_updates(self):
+        self.updates.check(silent=False)
 
     def show_guide(self):
         show_guide(self.main)

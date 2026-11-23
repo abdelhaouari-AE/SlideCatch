@@ -132,6 +132,30 @@ def run(report_path: str) -> int:
 
     check("export", exports)
 
+    def updates():
+        # The update check needs Qt's TLS (https) and checksum, and the zip unpacking.
+        import zipfile
+
+        from PySide6.QtCore import QCryptographicHash
+        from PySide6.QtNetwork import QSslSocket
+
+        from . import updater
+        from .ui import updates as ui_updates
+        assert QSslSocket.supportsSsl(), "Qt has no TLS support (https cannot be used)"
+        backend = QSslSocket.activeBackend()
+        digest = bytes(QCryptographicHash.hash(b"abc", QCryptographicHash.Algorithm.Sha256).toHex())
+        assert digest.startswith(b"ba7816bf"), "SHA-256 is wrong"
+        zip_path = os.path.join(work, "fake-release.zip")
+        with zipfile.ZipFile(zip_path, "w") as archive:
+            archive.writestr("SlideCatch/SlideCatch.exe", "x")
+            archive.writestr("SlideCatch/_internal/a.dll", "y")
+        folder = updater.stage(zip_path, os.path.join(work, "staged"))
+        assert os.path.isfile(os.path.join(folder, "SlideCatch.exe"))
+        assert ui_updates.file_sha256(zip_path) == updater.expected_checksum(ui_updates.file_sha256(zip_path))
+        return {"tls_backend": backend, "tls_ok": True}
+
+    check("updates", updates)
+
     def screens():
         """Builds every window in each language (finds missing parts of the
         trimmed build: a Qt plugin, a translation, an icon...)."""

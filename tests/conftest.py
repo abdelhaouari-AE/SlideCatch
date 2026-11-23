@@ -9,8 +9,10 @@
 import os
 import sys
 import tempfile
+import time
 
 import pytest
+from PySide6.QtCore import Qt
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
@@ -62,3 +64,57 @@ def make_session(qapp, sessions_root):
         return session
 
     return build
+
+
+def wait_until(app, condition, timeout=20.0):
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        app.processEvents()
+        if condition():
+            return True
+        time.sleep(0.01)
+    return False
+
+
+@pytest.fixture
+def dialogs(monkeypatch):
+    """Records message boxes instead of showing them; "ask" answers yes."""
+    from slidecatch.ui import widgets
+    shown = []
+    monkeypatch.setattr(widgets, "ask", lambda parent, title, text, *a, **k: shown.append(text) or True)
+    monkeypatch.setattr(widgets, "inform", lambda parent, title, text, *a, **k: shown.append(text))
+    return shown
+
+
+@pytest.fixture
+def start_app(qapp, tmp_path, monkeypatch, dialogs):
+    """start_app(language) -> controller, with generated windows and folders."""
+    from slidecatch import config, i18n
+    from slidecatch.ui import controller as ctl
+    from slidecatch.ui import workers
+    from tests import fakes
+    monkeypatch.setattr(ctl.AppController, "list_windows", lambda self: fakes.windows())
+    monkeypatch.setattr(workers, "MIN_INTERVAL", 0.0)
+    made = []
+
+    def start(language="en"):
+        i18n.set_language(language)
+        qapp.setLayoutDirection(Qt.LayoutDirection.RightToLeft if i18n.is_rtl()
+                                else Qt.LayoutDirection.LeftToRight)
+        settings = config.Settings(terms_accepted="1", language=language, hotkeys=False,
+                                   sessions_dir=str(tmp_path / "sessions"),
+                                   export_dir=str(tmp_path / "exports"))
+        controller = ctl.AppController(qapp, settings)
+        controller.show()
+        qapp.processEvents()
+        made.append(controller)
+        return controller
+
+    yield start
+    for controller in made:
+        for review in list(controller.reviews):
+            review.close()
+        controller.shutdown()
+        controller.main.hide()
+    qapp.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
+    qapp.processEvents()

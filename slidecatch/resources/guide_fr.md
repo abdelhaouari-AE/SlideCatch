@@ -80,6 +80,6 @@ Les images capturées ne sont jamais modifiées : rognages, suppressions et ordr
 
 ## Confidentialité
 
-Tout reste sur votre ordinateur : SlideCatch n'envoie jamais rien sur Internet. Demandez l'accord du présentateur avant de capturer, comme pour l'enregistrement d'une réunion.
+Tout reste sur votre ordinateur. SlideCatch contacte seulement GitHub pour savoir si une nouvelle version existe (désactivable dans les Paramètres), et n'installe une mise à jour que si vous cliquez sur « Mettre à jour maintenant ». Demandez l'accord du présentateur avant de capturer, comme pour l'enregistrement d'une réunion.
 
 SlideCatch {APP_VERSION} — © {APP_YEAR} {APP_AUTHOR}

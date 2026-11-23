@@ -41,7 +41,7 @@ The full guide is inside the app (**?** button), in the three languages.
 - **Review before export.** Delete, reorder (drag and drop), crop, merge animation steps, undo / redo — the captured pictures are never altered.
 - **Exports.** PowerPoint (one picture per slide, optional title slide, capture time in the speaker notes), PDF, or numbered PNG files.
 - **Light and dark themes** in the Microsoft Teams colours; **Arabic** with a fully mirrored interface.
-- **Private by design.** No account, no internet connection, no data collection.
+- **Private by design.** No account, no data collection. The only internet use is the optional check for a new version (GitHub sees your IP address, the program name and version; switch it off in Settings).
 
 ### Good to know
 

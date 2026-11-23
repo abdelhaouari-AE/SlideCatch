@@ -6,7 +6,7 @@ stay sharp on high-DPI screens.
 """
 
 from PySide6.QtCore import QByteArray, QRectF, QSize, Qt
-from PySide6.QtGui import QIcon, QPainter, QPixmap
+from PySide6.QtGui import QGuiApplication, QIcon, QImage, QPainter, QPixmap
 from PySide6.QtSvg import QSvgRenderer
 
 from ..i18n import is_rtl
@@ -105,3 +105,35 @@ def icon(name: str, color: str, size: int = 18, disabled_color: str = None) -> Q
 
 def icon_size(size: int = 18) -> QSize:
     return QSize(size, size)
+
+
+_logos = {}
+
+
+def logo_pixmap(path: str, size: int) -> QPixmap:
+    """The application picture at ``size`` logical pixels, sharp on any screen.
+
+    A 256 px picture shrunk to 30 px in one step looks blurry (the filter
+    skips most of the pixels). So the picture is halved step by step until it
+    is close to the wanted size, and it is made for the real pixel density of
+    the screen (a 30 px logo is 45 px at 150 % scaling).
+    """
+    screen = QGuiApplication.primaryScreen()
+    ratio = max(2.0, screen.devicePixelRatio() if screen is not None else 2.0)
+    key = (path, size, ratio)
+    pm = _logos.get(key)
+    if pm is None:
+        image = QImage(path)
+        if image.isNull():
+            return QPixmap()
+        target = int(round(size * ratio))
+        while image.width() >= target * 2:
+            half = image.width() // 2
+            image = image.scaled(half, half, Qt.AspectRatioMode.KeepAspectRatio,
+                                 Qt.TransformationMode.SmoothTransformation)
+        image = image.scaled(target, target, Qt.AspectRatioMode.KeepAspectRatio,
+                             Qt.TransformationMode.SmoothTransformation)
+        pm = QPixmap.fromImage(image)
+        pm.setDevicePixelRatio(ratio)
+        _logos[key] = pm
+    return pm

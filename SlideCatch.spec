@@ -11,9 +11,9 @@ temporary folder at every start (slower, and often slowed further by
 antivirus scans). The folder starts at once.
 
 Keeping it small: PyInstaller copies every Qt and Python part that *might* be
-needed. SlideCatch only uses Qt Core, Gui, Widgets and Svg, and draws its
-icons itself, so the lists below remove the rest (software OpenGL alone is
-20 MB). The build server prints the final size and runs the built program's
+needed. SlideCatch only uses Qt Core, Gui, Widgets, Svg and Network (for the update
+check) and draws its icons itself, so the lists below remove the rest (software
+OpenGL alone is 20 MB). The build server prints the final size and runs the built program's
 self-test, so a removal that breaks something is caught at once.
 """
 
@@ -33,14 +33,14 @@ EXCLUDED_MODULES = [
     "tkinter", "_tkinter", "turtle", "turtledemo", "idlelib",
     "unittest", "doctest", "pydoc", "pydoc_data", "pdb", "lib2to3",
     "sqlite3", "_sqlite3", "dbm", "curses", "readline",
-    "ssl", "_ssl", "hashlib", "_hashlib",           # no network, no checksums
+    "ssl", "_ssl", "hashlib", "_hashlib",           # Qt does https and checksums (QtNetwork)
     "bz2", "_bz2", "lzma", "_lzma",                 # zip files use plain "deflate"
     "decimal", "_decimal", "fractions", "statistics",
     "xml", "xmlrpc", "pyexpat", "html", "http", "urllib.request", "email", "mailbox", "ftplib",
     "smtplib", "imaplib", "poplib", "nntplib", "telnetlib",
     "asyncio", "concurrent", "multiprocessing",
     "unicodedata",                                  # 1 MB; see i18n._direction
-    "PySide6.QtNetwork", "PySide6.QtQml", "PySide6.QtQuick", "PySide6.QtOpenGL",
+    "PySide6.QtQml", "PySide6.QtQuick", "PySide6.QtOpenGL",
     "PySide6.QtOpenGLWidgets", "PySide6.QtPdf", "PySide6.QtDBus", "PySide6.QtSql",
     "PySide6.QtTest", "PySide6.QtXml", "PySide6.QtConcurrent", "PySide6.QtPrintSupport",
     "PySide6.QtUiTools", "PySide6.QtDesigner", "PySide6.QtHelp",
@@ -51,12 +51,14 @@ EXCLUDED_MODULES = [
 # of Qt is dropped. Files that are not part of Qt (the Visual C++ runtime that
 # comes with PySide6, Python itself...) are always kept.
 QT_LIBRARIES = ("qt6core", "qt6gui", "qt6widgets", "qt6svg.",          # not Qt6SvgWidgets
-                "libqt6core", "libqt6gui", "libqt6widgets", "libqt6svg.",
+                "qt6network.",                                          # update check (https)
+                "libqt6core", "libqt6gui", "libqt6widgets", "libqt6svg.", "libqt6network.",
                 "libqt6xcbqpa", "libqt6dbus", "libqt6opengl.")        # Linux test builds only
 QT_PLUGINS = ("platforms/qwindows.",
+              "tls/qschannelbackend.",                                  # https with the Windows certificates
               "platforms/libqxcb.", "platforms/libqoffscreen.")         # Linux test builds only
 QT_TRANSLATIONS = ("qtbase_fr.", "qtbase_ar.")                         # Copy, Paste... in fr/ar
-QT_PYTHON_MODULES = ("qtcore.", "qtgui.", "qtwidgets.", "qtsvg.")
+QT_PYTHON_MODULES = ("qtcore.", "qtgui.", "qtwidgets.", "qtsvg.", "qtnetwork.")
 NEVER = ("opengl32sw", "d3dcompiler")                                  # 20 MB + 4 MB, unused
 
 

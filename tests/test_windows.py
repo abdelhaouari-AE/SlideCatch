@@ -186,3 +186,49 @@ def test_hotkeys_register_and_stop():
     assert listener.wait_ready()
     listener.stop()
     assert not listener.is_alive()
+
+
+# ------------------------------------------------------------ update helper
+def _fake_program(folder, marker, extra=b""):
+    """A tiny stand-in for the program folder: SlideCatch.exe + _internal."""
+    import os
+    import shutil
+    (folder / "_internal").mkdir(parents=True)
+    shutil.copy(os.path.join(os.environ["WINDIR"], "System32", "hostname.exe"), folder / "SlideCatch.exe")
+    if extra:
+        with open(folder / "SlideCatch.exe", "ab") as fh:
+            fh.write(extra)                       # makes the "new" exe different from the old one
+    (folder / "_internal" / (marker + ".txt")).write_text(marker)
+
+
+@pytest.mark.parametrize("name", ["program", "progème عربي"])
+def test_update_script_replaces_the_files_and_keeps_the_rest(tmp_path, name):
+    from slidecatch import updater
+    old, new = tmp_path / name, tmp_path / "new files"
+    _fake_program(old, "old")
+    _fake_program(new, "new", b"NEW")
+    (old / "settings").mkdir()
+    (old / "settings" / "keep.json").write_text("mine")
+    process = updater.start_script(str(old), str(new), folder=str(tmp_path / "updates"))
+    assert process.wait(timeout=90) == 0
+    assert (old / "_internal" / "new.txt").exists()
+    assert not (old / "_internal" / "old.txt").exists()
+    assert (old / "settings" / "keep.json").read_text() == "mine"       # never deleted
+    assert (old / "SlideCatch.exe").read_bytes().endswith(b"NEW")
+    assert not (old / "SlideCatch.exe.old").exists() and not (old / "_internal.old").exists()
+    assert updater.read_previous_result() == "ok"
+
+
+def test_update_script_puts_the_old_version_back_when_a_file_is_in_use(tmp_path):
+    from slidecatch import updater
+    old, new = tmp_path / "program", tmp_path / "new"
+    _fake_program(old, "old")
+    _fake_program(new, "new", b"NEW")
+    original = (old / "SlideCatch.exe").read_bytes()
+    with open(old / "_internal" / "old.txt", "r") as held:          # keeps the folder from being renamed
+        held.read()
+        process = updater.start_script(str(old), str(new), folder=str(tmp_path / "updates"))
+        assert process.wait(timeout=90) == 0
+    assert (old / "SlideCatch.exe").read_bytes() == original
+    assert (old / "_internal" / "old.txt").exists() and not (old / "_internal" / "new.txt").exists()
+    assert "in use" in updater.read_previous_result()

@@ -5,65 +5,12 @@ The capture runs on replayed pictures (see test_pipeline.py).
 """
 
 import os
-import time
 
 import pytest
 from PySide6.QtCore import Qt
 
-from slidecatch import APP_AUTHOR, APP_NAME, config, i18n
-
-
-def wait_until(app, condition, timeout=20.0):
-    deadline = time.monotonic() + timeout
-    while time.monotonic() < deadline:
-        app.processEvents()
-        if condition():
-            return True
-        time.sleep(0.01)
-    return False
-
-
-@pytest.fixture
-def dialogs(monkeypatch):
-    """Records message boxes instead of showing them; "ask" answers yes."""
-    from slidecatch.ui import widgets
-    shown = []
-    monkeypatch.setattr(widgets, "ask", lambda parent, title, text, *a, **k: shown.append(text) or True)
-    monkeypatch.setattr(widgets, "inform", lambda parent, title, text, *a, **k: shown.append(text))
-    return shown
-
-
-@pytest.fixture
-def start_app(qapp, tmp_path, monkeypatch, dialogs):
-    """start_app(language) -> controller, with generated windows and folders."""
-    from slidecatch.ui import controller as ctl
-    from slidecatch.ui import workers
-    from tests import fakes
-    monkeypatch.setattr(ctl.AppController, "list_windows", lambda self: fakes.windows())
-    monkeypatch.setattr(workers, "MIN_INTERVAL", 0.0)
-    made = []
-
-    def start(language="en"):
-        i18n.set_language(language)
-        qapp.setLayoutDirection(Qt.LayoutDirection.RightToLeft if i18n.is_rtl()
-                                else Qt.LayoutDirection.LeftToRight)
-        settings = config.Settings(terms_accepted="1", language=language, hotkeys=False,
-                                   sessions_dir=str(tmp_path / "sessions"),
-                                   export_dir=str(tmp_path / "exports"))
-        controller = ctl.AppController(qapp, settings)
-        controller.show()
-        qapp.processEvents()
-        made.append(controller)
-        return controller
-
-    yield start
-    for controller in made:
-        for review in list(controller.reviews):
-            review.close()
-        controller.shutdown()
-        controller.main.hide()
-    qapp.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
-    qapp.processEvents()
+from slidecatch import APP_AUTHOR, APP_NAME, APP_VERSION, config, i18n
+from tests.conftest import wait_until
 
 
 @pytest.mark.parametrize("language", ["en", "fr", "ar"])
@@ -156,7 +103,7 @@ def test_about_names_the_author(qapp):
     from slidecatch.ui.dialogs import AboutDialog
     dialog = AboutDialog()
     texts = [label.text() for label in dialog.findChildren(QLabel)]
-    assert APP_AUTHOR in texts and any("0.1.0" in t for t in texts)
+    assert APP_AUTHOR in texts and any(APP_VERSION in t for t in texts)
     dialog.deleteLater()
 
 
@@ -170,3 +117,57 @@ def test_mini_bar(qapp):
     assert bar.count_label.text() == "12 slides"
     bar.close()
     bar.deleteLater()
+
+
+def test_only_one_language_is_ticked(qapp, start_app):
+    controller = start_app()
+    group = controller.main.language_group
+
+    def ticked():
+        return [a.data() for a in group.actions() if a.isChecked()]
+    assert ticked() == ["en"]
+    controller.settings.language = "fr"             # what choosing French saves
+    next(a for a in group.actions() if a.data() == "fr").trigger()
+    assert ticked() == ["fr"]
+    assert controller.main.language_button.text() == "FR"
+
+
+def test_mini_bar_keeps_its_size(qapp):
+    from slidecatch.ui.mini_bar import MiniBar
+    bar = MiniBar(1, True)
+    bar.show()
+    qapp.processEvents()
+    sizes = set()
+    for count, when in ((0, ""), (1, "09:05"), (24, "14:32"), (88, "23:59")):
+        bar.set_count(count, when)
+        bar.set_paused(count % 2 == 1)
+        bar.show_toast("Slide %d saved" % count)
+        bar.start_clock()
+        qapp.processEvents()
+        sizes.add((bar.size().toTuple(), bar.stop_button.height()))
+    bar.close()
+    assert len(sizes) == 1, sizes
+    assert next(iter(sizes))[1] == 40
+
+
+def test_popups_have_transparent_corners(qapp):
+    """Tooltips and menus get a see-through window so their round corners show."""
+    from PySide6.QtCore import QPoint
+    from PySide6.QtWidgets import QMenu, QToolTip, QWidget
+    menu = QMenu()
+    menu.addAction("English")
+    menu.popup(QPoint(40, 40))
+    qapp.processEvents()
+    assert menu.grab().toImage().pixelColor(0, 0).alpha() == 0
+    menu.close()
+    anchor = QWidget()
+    anchor.show()
+    tips = []
+
+    def tip_is_up():
+        QToolTip.showText(QPoint(80, 80), "Open the main window", anchor)
+        tips[:] = [x for x in qapp.topLevelWidgets() if x.inherits("QTipLabel") and x.isVisible()]
+        return bool(tips)
+    assert wait_until(qapp, tip_is_up, 3.0)
+    assert tips[0].grab().toImage().pixelColor(0, 0).alpha() == 0
+    QToolTip.hideText()
