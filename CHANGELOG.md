@@ -2,6 +2,12 @@
 
 All notable changes to SlideCatch. Versions follow `MAJOR.MINOR.PATCH`.
 
+## 0.3.1 — 2026-11-24
+
+### New
+- **Installer** (`SlideCatch-<version>-setup.exe`, Inno Setup): installs for the current user in `%LOCALAPPDATA%\Programs\SlideCatch` (no administrator rights), Start menu shortcut, optional desktop icon, uninstaller. The in-app update keeps working after installation.
+- Each release also carries `SlideCatch-setup.exe` and `SlideCatch-portable.zip` under fixed names, for direct download links (`releases/latest/download/...`).
+
 ## 0.3.0 — 2026-11-23
 
 ### New

@@ -292,3 +292,10 @@ def test_terms_box_needs_scrolling_then_the_tick(qapp):
     dialog.check.setChecked(True)
     assert dialog.agree.isEnabled()
     dialog.close()
+
+
+def test_fixed_name_download_files_are_not_taken_for_the_update():
+    """The page links to SlideCatch-portable.zip / -setup.exe; the update uses the versioned zip."""
+    assert not updater.ASSET_PATTERN.match("SlideCatch-portable.zip")
+    assert not updater.ASSET_PATTERN.match("SlideCatch-0.3.1-setup.exe")
+    assert updater.ASSET_PATTERN.match("SlideCatch-0.3.1-portable.zip")

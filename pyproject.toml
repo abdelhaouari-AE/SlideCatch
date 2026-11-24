@@ -3,7 +3,7 @@
 
 [project]
 name = "slidecatch"
-version = "0.3.0"
+version = "0.3.1"
 description = "Catch every slide of a presentation shared in Microsoft Teams"
 authors = [{ name = "Abdelhalim EL HAOUARI" }]
 license = { text = "Proprietary - all rights reserved" }

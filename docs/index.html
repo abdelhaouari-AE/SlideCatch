@@ -34,13 +34,6 @@ header.top{display:flex;align-items:center;justify-content:space-between;padding
 .nav a{color:var(--ink2);text-decoration:none;font-weight:600;font-size:15px}
 .nav a:hover{color:var(--brand-deep)}
 header.top{position:sticky;top:0;z-index:20;background:rgba(244,244,250,.9);backdrop-filter:blur(8px)}
-.fgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:36px 56px;margin-top:8px}
-.fgrid h3{font-size:22px;letter-spacing:-.02em;margin:0 0 6px}
-.fgrid p{margin:0;color:var(--ink2);max-width:30em}
-.gallery{display:grid;gap:56px}
-.gallery figure{margin:0}
-.gallery figcaption{margin-top:14px;color:var(--ink2);text-align:center}
-.gallery .narrow{max-width:460px;margin-inline:auto}
 .terms p{color:var(--ink2);max-width:40em;margin:0 0 14px}
 /* hero */
 .hero{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:48px;align-items:center;padding:36px 0 72px}
@@ -118,17 +111,22 @@ h2{font-size:clamp(30px,4vw,44px);letter-spacing:-.03em;line-height:1.1;margin:0
 .dl p{margin:0;color:#d4d5f2;max-width:32em}
 .dl .btn{background:#fff;color:var(--brand-deep);font-size:18px;padding:16px 28px}
 .dl .btn:hover{background:var(--brand-soft)}
-.dl small{display:block;margin-top:10px;color:#b9bbe6;text-align:center}
+.dl{grid-template-columns:1fr}
+.dl-options{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.opt{background:#ffffff14;border-radius:14px;padding:22px}
+.opt p{margin:12px 0 0;font-size:15px}
+.dl .note{max-width:none;font-size:15px;background:#00000026;border-radius:10px;padding:14px 16px}
+.dl .note strong{color:#fff}
 footer{padding:36px 0 56px;color:var(--ink2);font-size:15px}
 footer p{margin:0 0 8px;max-width:46em}
 
 @media (max-width:860px){
   .nav{display:none}
-  .fgrid{grid-template-columns:1fr}
-  .hero,.feature,.feature.flip{grid-template-columns:1fr;gap:30px}
+    .hero,.feature,.feature.flip{grid-template-columns:1fr;gap:30px}
   .feature.flip .text{order:0}
   .steps{grid-template-columns:1fr}
-  .dl{grid-template-columns:1fr;padding:34px}
+  .dl{padding:34px}
+  .dl-options{grid-template-columns:1fr}
   section{padding:52px 0}
   .out{position:static;margin-top:10px;transform:none}
 }
@@ -139,7 +137,7 @@ footer p{margin:0 0 8px;max-width:46em}
 <div class="wrap">
   <header class="top">
     <a class="brand" href="#"><img src="screenshots/icon.png" alt="" width="30" height="30">SlideCatch</a>
-    <nav class="nav" aria-label="Page sections"><a href="#how">How it works</a><a href="#features">Features</a><a href="#screens">Screens</a><a href="#download">Download</a><a href="#terms">Terms of use</a></nav>
+    <nav class="nav" aria-label="Page sections"><a href="#how">How it works</a><a href="#features">Features</a><a href="#download">Download</a><a href="#terms">Terms of use</a></nav>
   </header>
 
   <div class="hero">
@@ -147,7 +145,7 @@ footer p{margin:0 0 8px;max-width:46em}
       <h1>Every Teams slide, caught.</h1>
       <p class="lead">SlideCatch watches a presentation in Microsoft Teams and keeps a picture of each slide. When it ends, you get a PowerPoint, a PDF or pictures.</p>
       <div class="cta">
-        <a class="btn" href="https://github.com/abdelhaouari-AE/SlideCatch/releases/latest">Download for Windows</a>
+        <a class="btn" href="#download">Download for Windows</a>
         <a class="btn ghost" href="#how">How it works</a>
       </div>
       <p class="meta">Free · about 25 MB · works offline</p>
@@ -186,41 +184,51 @@ footer p{margin:0 0 8px;max-width:46em}
     <li><h3>Press Start</h3><p>A small bar saves each new slide the moment it appears. The meeting window can stay behind other windows.</p></li>
     <li><h3>Review and export</h3><p>Reorder, crop or delete slides, then save a PowerPoint, a PDF or pictures.</p></li>
   </ol>
-  <img class="shot how-shot" src="screenshots/main.png" alt="SlideCatch main window with the live preview of a Teams slide" width="1000" height="660">
+  <img class="shot how-shot" src="screenshots/how-main.png" alt="SlideCatch main window with the live preview of a Teams slide" width="2000" height="1320">
 </div></section></div>
 
 <section id="features"><div class="wrap">
   <h2>Features</h2>
   <p class="sub">Small, quick and quiet while the presentation runs.</p>
-  <div class="fgrid">
-    <div><h3>Only real slides are kept</h3><p>Webcams, the mouse pointer and half-finished transitions are ignored. Going back to a slide never saves it twice.</p></div>
-    <div><h3>Fix it before you export</h3><p>Reorder by dragging, crop, delete, undo. Slides built line by line can be reduced to their final step.</p></div>
-    <div><h3>Nothing is lost</h3><p>Each slide is written to disk when it is caught. If the computer stops, SlideCatch offers to restore the session.</p></div>
-    <div><h3>Light or dark, in your language</h3><p>English, French, Spanish, German and Arabic, in the Microsoft Teams colours.</p></div>
-  </div>
-  <div class="bar-shot" style="margin-top:48px"><img src="screenshots/minibar.png" alt="The small capture bar shown during a meeting" width="650" height="110"></div>
-</div></section>
 
-<div class="band"><section id="screens"><div class="wrap">
-  <h2>Screens</h2>
-  <p class="sub">What you see from the first click to the export.</p>
-  <div class="gallery">
-    <figure><img class="shot" src="screenshots/review.png" alt="Review window with captured slides" width="1240" height="800"><figcaption>Review: reorder, crop and export</figcaption></figure>
-    <figure><img class="shot" src="screenshots/main-en-dark.png" alt="SlideCatch in the dark theme" width="1000" height="660"><figcaption>Dark theme</figcaption></figure>
-    <figure class="narrow"><img class="shot" src="screenshots/settings.png" alt="SlideCatch settings" width="580" height="720"><figcaption>Settings</figcaption></figure>
+  <div class="feature">
+    <div class="text"><h3>Only real slides are kept</h3><p>SlideCatch finds the slide inside the meeting window and leaves out the chat and video tiles. Webcams, the mouse pointer and half-finished transitions never count as a new slide.</p></div>
+    <img class="shot" src="screenshots/feat-detect.png" alt="Live preview with the slide area found automatically" width="1242" height="845">
   </div>
-</div></section></div>
+
+  <div class="feature flip">
+    <div class="text"><h3>Nothing is lost</h3><p>Each slide is written to disk the moment it is caught. If the computer stops, SlideCatch offers to restore the session at the next start.</p></div>
+    <div class="bar-shot"><img src="screenshots/feat-saved.png" alt="Capture bar showing 24 slides saved" width="1300" height="220"></div>
+  </div>
+
+  <div class="feature">
+    <div class="text"><h3>Fix it before you export</h3><p>Reorder by dragging, crop, delete, undo. Slides built line by line are grouped, and one click keeps only the final step.</p></div>
+    <img class="shot" src="screenshots/feat-review.png" alt="Review window with slides and the animated-slide banner" width="1711" height="818">
+  </div>
+
+  <div class="feature flip">
+    <div class="text"><h3>Light or dark, in your language</h3><p>English, French, Spanish, German and Arabic, in the Microsoft Teams colours.</p></div>
+    <img class="shot" src="screenshots/feat-theme.png" alt="SlideCatch in the dark theme" width="1100" height="760">
+  </div>
+</div></section>
 
 <section id="download"><div class="wrap">
   <div class="dl">
     <div>
       <h2>Get SlideCatch</h2>
-      <p>Windows 10 or 11. Download the zip, unzip it anywhere and run SlideCatch.exe. It works offline and goes online only to offer you updates.</p>
+      <p>Free, for Windows 10 and 11. Both versions are the same app and update themselves.</p>
     </div>
-    <div>
-      <a class="btn" href="https://github.com/abdelhaouari-AE/SlideCatch/releases/latest">Download for Windows</a>
-      <small>Free · no account</small>
+    <div class="dl-options">
+      <div class="opt">
+        <a class="btn" href="https://github.com/abdelhaouari-AE/SlideCatch/releases/latest/download/SlideCatch-setup.exe">Installer (.exe)</a>
+        <p>Installs for your account, with a Start menu shortcut and an uninstaller. No administrator rights needed.</p>
+      </div>
+      <div class="opt">
+        <a class="btn" href="https://github.com/abdelhaouari-AE/SlideCatch/releases/latest/download/SlideCatch-portable.zip">Portable (.zip)</a>
+        <p>Unzip anywhere, even on a USB stick, and run SlideCatch.exe. Nothing is installed.</p>
+      </div>
     </div>
+    <p class="note"><strong>Windows protected your PC?</strong> The installer is not yet signed with a paid certificate, so SmartScreen may show this warning the first time. Click <em>More info</em>, then <em>Run anyway</em>. The portable version usually avoids the warning.</p>
   </div>
 </div></section>
 
